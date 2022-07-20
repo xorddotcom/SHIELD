@@ -12,7 +12,7 @@ async function main() {
 
   console.log("Verifier deployed to:", verifier.address);
 
-  const Multiplier = await hre.ethers.getContractFactory("Multiplier");
+  const Multiplier = await ethers.getContractFactory("Multiplier");
 
   const multiplier = await Multiplier.deploy(verifier.address);
 
