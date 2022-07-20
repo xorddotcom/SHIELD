@@ -7,13 +7,15 @@
     "build": "npm run compile:circuits && npm run fix && npm run compile",
     "clean": "hardhat clean",
     "clean:circuits": "rm -rf circuits/build && rm contracts/Verifier.sol",
+    "clean:types": "rm -rf typechain-types",
     "compile": "hardhat compile",
     "compile:circuits": "sh ./scripts/compile-circuit.sh",
-    "fix": "node ./scripts/bump-solidity.js",
+    "fix": "node ./scripts/bump-solidity.ts",
     "info": "snarkjs info -r circuits/build/Multiplier/Multiplier.r1cs",
     "test": "hardhat test",
+    "types": "hardhat typechain",
     "node": "hardhat node",
-    "deploy:localhost": "npx hardhat run --network localhost scripts/deploy.js"
+    "deploy:localhost": "npx hardhat run --network localhost scripts/deploy.ts"
   },
   "keywords": [],
   "author": "",
@@ -35,10 +37,13 @@
     "@nomiclabs/hardhat-etherscan": "^3.1.0",
     "@typechain/ethers-v5": "^10.1.0",
     "@typechain/hardhat": "^6.1.2",
+    "@types/jest": "^28.1.6",
     "chai": "^4.3.6",
     "ethers": "^5.6.9",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.7.21",
-    "typechain": "^8.1.0"
+    "ts-node": "^10.9.1",
+    "typechain": "^8.1.0",
+    "typescript": "^4.7.4"
   }
 }

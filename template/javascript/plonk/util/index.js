@@ -1,29 +1,5 @@
 const path = require('path');
-const { groth16, plonk } = require('snarkjs');
-
-
-
-function unstringifyBigInts(o) {
-  if ((typeof (o) == "string") && (/^[0-9]+$/.test(o))) {
-    return BigInt(o);
-  } else if ((typeof (o) == "string") && (/^0x[0-9a-fA-F]+$/.test(o))) {
-    return BigInt(o);
-  } else if (Array.isArray(o)) {
-    return o.map(unstringifyBigInts);
-  } else if (typeof o == "object") {
-    if (o === null) return null;
-    const res = {};
-    const keys = Object.keys(o);
-    keys.forEach((k) => {
-      res[k] = unstringifyBigInts(o[k]);
-    });
-    return res;
-  } else {
-    return o;
-  }
-}
-
-
+const { plonk } = require('snarkjs');
 
 const prove = async (witness) => {
   const wasmPath = path.join(
@@ -34,6 +10,7 @@ const prove = async (witness) => {
     __dirname,
     "../circuits/build/Multiplier/circuit_final.zkey"
   );
+  
   const { proof: _proof, publicSignals: _publicSignals } = await plonk.fullProve(
     witness,
     wasmPath,

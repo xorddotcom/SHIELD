@@ -1,9 +1,8 @@
 const {
-  time,
   loadFixture,
 } = require("@nomicfoundation/hardhat-network-helpers");
 
-const { prove, proveTwo } = require('../util');
+const { prove } = require('../util');
 const { expect, assert } = require("chai");
 const { ethers } = require("hardhat");
 const wasm_tester = require("circom_tester").wasm;

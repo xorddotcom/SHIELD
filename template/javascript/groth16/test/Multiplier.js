@@ -1,9 +1,8 @@
 const {
-  time,
   loadFixture,
 } = require("@nomicfoundation/hardhat-network-helpers");
 
-const { prove, proveTwo } = require('../util');
+const { prove } = require('../util');
 const { expect, assert } = require("chai");
 const { ethers } = require("hardhat");
 const wasm_tester = require("circom_tester").wasm;
@@ -12,7 +11,6 @@ const F1Field = require("ffjavascript").F1Field;
 const Scalar = require("ffjavascript").Scalar;
 exports.p = Scalar.fromString("21888242871839275222246405745257275088548364400416034343698204186575808495617");
 const Fr = new F1Field(exports.p);
-
 
 
 describe("Multiplier", function () {
@@ -35,7 +33,7 @@ describe("Multiplier", function () {
 
   describe("Circuit test", function () {
 
-    it("Multipler2 test", async () => {
+    it("Multipler test", async () => {
       const circuit = await wasm_tester("circuits/Multiplier.circom");
       await circuit.loadConstraints();
 
