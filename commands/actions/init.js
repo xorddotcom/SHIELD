@@ -14,6 +14,8 @@ export const init = async () => {
     let projectName = "";
     let projectPath = "";
     let projectLanguage = "";
+    let proofSystem = "";
+    let contributionName = "";
     const response = await prompt([
       {
         type: "input",
@@ -52,11 +54,39 @@ export const init = async () => {
         message: "Please select the proof system for project.",
         choices: ["Groth16", "Plonk"],
         result: async (value) => {
-          const src = `${getPackageRoot()}/template/${projectLanguage}/${value.toLowerCase()}`;
+          proofSystem = value;
+          if (value === "Plonk") {
+            const src = `${getPackageRoot()}/template/${projectLanguage}/${value.toLowerCase()}`;
+            const dest = `${process.cwd()}/${projectName}`;
+            projectPath = dest;
+            await fsExtra.copy(src, dest);
+            await updateCopyProjectName(projectName, projectPath);
+            console.log(chalk.greenBright("Successfully generated the code."));
+          }
+        },
+      },
+      {
+        type: "input",
+        name: "contributerName",
+        message: "Please enter the contribution name for groth16 setup?",
+        initial: "1st Contributor Name",
+        skip: () => proofSystem === "Plonk",
+        onSubmit: async (name, value) => {
+          contributionName = value;
+        },
+      },
+      {
+        type: "input",
+        name: "folderName",
+        message: "Please enter the entropy for groth16 setup?",
+        initial: "random text",
+        skip: () => proofSystem === "Plonk",
+        onSubmit: async (name, value) => {
+          const src = `${getPackageRoot()}/template/${projectLanguage}/groth16`;
           const dest = `${process.cwd()}/${projectName}`;
-          projectPath = dest;
           await fsExtra.copy(src, dest);
-          const updated = await updateCopyProjectName(projectName, projectPath);
+          await updateCompileCircuit(dest, contributionName, value);
+          await updateCopyProjectName(projectName, dest);
           console.log(chalk.greenBright("Successfully generated the code."));
         },
       },
@@ -69,7 +99,7 @@ export const init = async () => {
           console.log(chalk.greenBright("Installing Dependencies..."));
           const command = val == "npm" ? `npm` : `yarn`;
           const args = val == "npm" ? ["install"] : [];
-          const dependencies = spawn(command, args , { cwd: projectPath });
+          const dependencies = spawn(command, args, { cwd: projectPath });
           dependencies.stdout.on("data", (data) => {
             console.log(data.toString());
           });
@@ -159,6 +189,25 @@ async function updateCopyProjectName(name, projectPath) {
       packageJsonPath,
       JSON.stringify(packageJson, null, 3)
     );
+    return res;
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+}
+
+async function updateCompileCircuit(projectPath, contributionName, entropy) {
+  try {
+    const filePath = path.join(projectPath, `/scripts/compile-circuit.sh`);
+    let fileContent = await fsExtra.readFile(filePath);
+
+    fileContent = fileContent
+      .toString()
+      .replace("1st Contributor Name", contributionName);
+
+    fileContent = fileContent.toString().replace("random text", entropy);
+
+    const res = await fsExtra.writeFile(filePath, fileContent);
     return res;
   } catch (e) {
     console.log(e);
