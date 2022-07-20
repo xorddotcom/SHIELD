@@ -55,10 +55,10 @@ export const init = async () => {
         choices: ["Groth16", "Plonk"],
         result: async (value) => {
           proofSystem = value;
+          const src = `${getPackageRoot()}/template/${projectLanguage}/${value.toLowerCase()}`;
+          const dest = `${process.cwd()}/${projectName}`;
+          projectPath = dest;
           if (value === "Plonk") {
-            const src = `${getPackageRoot()}/template/${projectLanguage}/${value.toLowerCase()}`;
-            const dest = `${process.cwd()}/${projectName}`;
-            projectPath = dest;
             await fsExtra.copy(src, dest);
             await updateCopyProjectName(projectName, projectPath);
             console.log(chalk.greenBright("Successfully generated the code."));
@@ -87,6 +87,7 @@ export const init = async () => {
           await fsExtra.copy(src, dest);
           await updateCompileCircuit(dest, contributionName, value);
           await updateCopyProjectName(projectName, dest);
+          console.log("")
           console.log(chalk.greenBright("Successfully generated the code."));
         },
       },
