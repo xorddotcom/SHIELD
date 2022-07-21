@@ -5,6 +5,7 @@ import fsExtra from "fs-extra";
 import { findUpSync } from "find-up";
 import { fileURLToPath } from "url";
 import { spawn } from "child_process";
+import ora from "ora";
 
 const { prompt } = Enquirer;
 const __filename = fileURLToPath(import.meta.url);
@@ -101,7 +102,9 @@ export const init = async () => {
         message: "Please select the package manager for project.",
         choices: ["npm", "yarn"],
         result: (val) => {
-          console.log(chalk.greenBright("Installing Dependencies..."));
+          const spinner = ora(
+            chalk.greenBright("Installing Dependencies...")
+          ).start();
           const OS = /^win/.test(process.platform) ? "win" : "linux";
           const command =
             val == "npm"
@@ -116,11 +119,14 @@ export const init = async () => {
           dependencies.stdout.on("data", (data) => {
             console.log(data.toString());
           });
+          dependencies.stderr.once("data", () => {
+            spinner.stopAndPersist();
+          });
           dependencies.stderr.on("data", (data) => {
             console.log(data.toString());
           });
           dependencies.stdout.once("close", (data) => {
-            console.log(
+            spinner.succeed(
               chalk.greenBright("Dependencies succesfully installed.")
             );
             console.log("");
