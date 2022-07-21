@@ -14,6 +14,7 @@ export const init = async () => {
     let projectName = "";
     let projectPath = "";
     let projectLanguage = "";
+    let proofSystem = "";
     const response = await prompt([
       {
         type: "input",
@@ -52,6 +53,7 @@ export const init = async () => {
         message: "Please select the proof system for project.",
         choices: ["Groth16", "Plonk"],
         result: async (value) => {
+          proofSystem = value;
           const src = `${getPackageRoot()}/template/${projectLanguage}/${value.toLowerCase()}`;
           const dest = `${process.cwd()}/${projectName}`;
           projectPath = dest;
