@@ -72,23 +72,27 @@ export const init = async () => {
         initial: "1st Contributor Name",
         skip: () => proofSystem === "Plonk",
         onSubmit: async (name, value) => {
-          contributionName = value;
+          if (proofSystem === "Groth16") {
+            contributionName = value;
+          }
         },
       },
       {
         type: "input",
-        name: "folderName",
+        name: "entropy",
         message: "Please enter the entropy for groth16 setup?",
         initial: "random text",
         skip: () => proofSystem === "Plonk",
         onSubmit: async (name, value) => {
-          const src = `${getPackageRoot()}/template/${projectLanguage}/groth16`;
-          const dest = `${process.cwd()}/${projectName}`;
-          await fsExtra.copy(src, dest);
-          await updateCompileCircuit(dest, contributionName, value);
-          await updateCopyProjectName(projectName, dest);
-          console.log("")
-          console.log(chalk.greenBright("Successfully generated the code."));
+          if (proofSystem === "Groth16") {
+            const src = `${getPackageRoot()}/template/${projectLanguage}/groth16`;
+            const dest = `${process.cwd()}/${projectName}`;
+            await fsExtra.copy(src, dest);
+            await updateCompileCircuit(dest, contributionName, value);
+            await updateCopyProjectName(projectName, dest);
+            console.log("");
+            console.log(chalk.greenBright("Successfully generated the code."));
+          }
         },
       },
       {
@@ -98,7 +102,15 @@ export const init = async () => {
         choices: ["npm", "yarn"],
         result: (val) => {
           console.log(chalk.greenBright("Installing Dependencies..."));
-          const command = val == "npm" ? `npm` : `yarn`;
+          const OS = /^win/.test(process.platform) ? "win" : "linux";
+          const command =
+            val == "npm"
+              ? OS === "win"
+                ? "npm.cmd"
+                : "npm"
+              : OS === "win"
+              ? "yarn.cmd"
+              : "yarn";
           const args = val == "npm" ? ["install"] : [];
           const dependencies = spawn(command, args, { cwd: projectPath });
           dependencies.stdout.on("data", (data) => {
