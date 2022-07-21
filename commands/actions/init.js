@@ -15,6 +15,7 @@ export const init = async () => {
     let projectPath = "";
     let projectLanguage = "";
     let proofSystem = "";
+    let contributionName = "";
     const response = await prompt([
       {
         type: "input",
@@ -111,7 +112,7 @@ export const init = async () => {
               ? "yarn.cmd"
               : "yarn";
           const args = val == "npm" ? ["install"] : [];
-          const dependencies = spawn(command, args , { cwd: projectPath });
+          const dependencies = spawn(command, args, { cwd: projectPath });
           dependencies.stdout.on("data", (data) => {
             console.log(data.toString());
           });
@@ -201,6 +202,25 @@ async function updateCopyProjectName(name, projectPath) {
       packageJsonPath,
       JSON.stringify(packageJson, null, 3)
     );
+    return res;
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+}
+
+async function updateCompileCircuit(projectPath, contributionName, entropy) {
+  try {
+    const filePath = path.join(projectPath, `/scripts/compile-circuit.sh`);
+    let fileContent = await fsExtra.readFile(filePath);
+
+    fileContent = fileContent
+      .toString()
+      .replace("1st Contributor Name", contributionName);
+
+    fileContent = fileContent.toString().replace("random text", entropy);
+
+    const res = await fsExtra.writeFile(filePath, fileContent);
     return res;
   } catch (e) {
     console.log(e);
