@@ -59,7 +59,7 @@ export function executeWithInput(process, inputs = [], opts = {}) {
     inputs = [];
   }
 
-  const { env = null, timeout = 100, maxTimeout = 10000 } = opts;
+  const { env = null, timeout = 200, maxTimeout = 100000 } = opts;
   const childProcess = runCommand(process)
   childProcess.stdin.setEncoding('utf-8');
 

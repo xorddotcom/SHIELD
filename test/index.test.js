@@ -1,165 +1,38 @@
 
 import { expect } from 'chai';
-import { exec } from "child_process";
-import concat from "concat-stream"
+import { executeWithInput, KEYS } from '../utils/cmd.js';
+import path from "path";
+import fsExtra from "fs-extra";
 
-function runCommand(command, callback) {
-  return exec(
-    command,
-    (
-      function () {
-        return function (err, data, stderr) {
-          if (!callback)
-            return;
+// TODO debug the edge case OF failing test cases
+// TODO ESCAP characters testing
+// TODO add the test case if the cli doesn't exists
+// TODO Installating of the cli
 
-          callback(err, data, stderr);
-        }
-      }
-    )(callback)
-  );
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function runSync(command) {
-  try {
-    return {
-      data: execSync(command).toString(),
-      err: null,
-      stderr: null
-    }
-  }
-  catch (error) {
-    return {
-      data: null,
-      err: error.stderr.toString(),
-      stderr: error.stderr.toString()
-    }
-  }
-}
-
-
-const ENTER = "\x0D"
-const DOWN = '\x1B\x5B\x42'
-const UP = '\x1B\x5B\x41'
-const SPACE = '\x20'
-
-/**
- * Creates a command and executes inputs (user responses) to the stdin
- * Returns a promise that resolves when all inputs are sent
- * Rejects the promise if any error
- * @param {string} process Path of the process to execute
- * @param {Array} inputs (Optional) Array of inputs (user responses)
- * @param {Object} opts (optional) Environment variables
- */
-function executeWithInput(process, inputs = [], opts = {}) {
-  if (!Array.isArray(inputs)) {
-    opts = inputs;
-    inputs = [];
-  }
-
-  const { env = null, timeout = 100, maxTimeout = 10000 } = opts;
-  const childProcess = runCommand(process)
-  childProcess.stdin.setEncoding('utf-8');
-
-  let currentInputTimeout, killIOTimeout;
-
-  // Creates a loop to feed user inputs to the child process in order to get results from the tool
-  // This code is heavily inspired (if not blantantly copied) from inquirer-test:
-  // https://github.com/ewnd9/inquirer-test/blob/6e2c40bbd39a061d3e52a8b1ee52cdac88f8d7f7/index.js#L14
-  const loop = inputs => {
-    if (killIOTimeout) {
-      clearTimeout(killIOTimeout);
-    }
-
-    if (!inputs.length) {
-      childProcess.stdin.end();
-
-      // Set a timeout to wait for CLI response. If CLI takes longer than
-      // maxTimeout to respond, kill the childProcess and notify user
-      killIOTimeout = setTimeout(() => {
-        console.error('Error: Reached I/O timeout');
-        childProcess.kill(constants.signals.SIGTERM);
-      }, maxTimeout);
-
-      return;
-    }
-
-    currentInputTimeout = setTimeout(() => {
-      childProcess.stdin.write(inputs[0]);
-      // Log debug I/O statements on tests
-      if (env && env.DEBUG) {
-        console.log('input:', inputs[0]);
-      }
-      loop(inputs.slice(1));
-    }, timeout);
-  };
-
-  const promise = new Promise((resolve, reject) => {
-    // Get errors from CLI
-    childProcess.stderr.on('data', data => {
-      // Log debug I/O statements on tests
-      if (env && env.DEBUG) {
-        console.log('error:', data.toString());
-      }
-    });
-
-    // Get output from CLI
-    childProcess.stdout.on('data', data => {
-      // Log debug I/O statements on tests
-      if (env && env.DEBUG) {
-        console.log('output:', data.toString());
-      }
-    });
-
-    childProcess.stderr.once('data', err => {
-      childProcess.stdin.end();
-
-      if (currentInputTimeout) {
-        clearTimeout(currentInputTimeout);
-        inputs = [];
-      }
-      reject(err.toString());
-    });
-
-    childProcess.on('error', reject);
-
-    // Kick off the process
-    loop(inputs);
-
-    childProcess.stdout.pipe(
-      concat(result => {
-        if (killIOTimeout) {
-          clearTimeout(killIOTimeout);
-        }
-
-        resolve(result.toString());
-      })
-    );
-  });
-
-  // Appending the process to the promise, in order to
-  // add additional parameters or behavior (such as IPC communication)
-  promise.attachedProcess = childProcess;
-
-  return promise;
-}
-
-
-describe('The shield CLI', () => {
+describe('The Shield CLI', () => {
 
   before(async () => {
     await executeWithInput(
-      'rm -rf test/mocks',
+      'rm -rf test/templates',
     );
   })
 
-  describe('Compile', () => {
 
-    // TODO add the test case if the cli doesn't exists
-    // TODO Installating of the cli
+  after(async () => {
+    await executeWithInput(
+      'rm -rf test/templates',
+    );
+  })
+
+  describe('Shield Compile', () => {
 
     it('should through error on empty sheild command', async () => {
       try {
-        const response = await executeWithInput(
+        await executeWithInput(
           'shield',
         );
       } catch (err) {
@@ -167,7 +40,7 @@ describe('The shield CLI', () => {
       }
     });
 
-    it('should work on help command properly', async () => {
+    it('should work on help command', async () => {
       const response = await executeWithInput(
         'shield --help',
       );
@@ -176,7 +49,7 @@ describe('The shield CLI', () => {
 
     it('should trough error on invalid help command', async () => {
       try {
-        const response = await executeWithInput(
+        await executeWithInput(
           'shield --helpme',
         );
       }
@@ -189,16 +62,16 @@ describe('The shield CLI', () => {
 
   })
 
-  describe('Inintiaze Package', () => {
+  describe('Shield Init', () => {
 
-    it('should fail to initialize the folder if same name exists', async () => {
+    it('should fail to initialize the folder if it already exists', async () => {
 
       await executeWithInput(
-        'cd test && mkdir mocks && cd mocks && mkdir demo-init',
+        'cd test && mkdir templates && cd templates && mkdir demo-init',
       );
 
       const response = await executeWithInput(
-        'cd test/mocks && shield init', ["demo-init", ENTER]
+        'cd test/templates && shield init', ["demo-init", KEYS.ENTER]
       );
 
       let result = response.includes('already exist')
@@ -207,18 +80,175 @@ describe('The shield CLI', () => {
 
     });
 
-    describe('Typescript', () => {
-      describe('Groth16', () => {
-      });
-      describe('Plonk', () => {
-      });
+
+    it('should trough error on invalid initialize command', async () => {
+      try {
+        await executeWithInput(
+          'shield --initialize',
+        );
+      }
+      catch (err) {
+        expect(err).to.equal(
+          "error: unknown option '--initialize'\n"
+        );
+      }
     });
 
-    describe('Javascript', () => {
-      describe('Groth16', () => {
+    describe('Typescript', () => {
+      describe('Ts Groth16', () => {
+
+        it('should create groth16 typescript template', async () => {
+
+          const response = await executeWithInput(
+            'cd test/templates && shield init', ["ts-groth16", KEYS.ENTER, KEYS.DOWN, KEYS.ENTER, KEYS.ENTER, "Alice", KEYS.ENTER, "cafe's mayfair biscuit", KEYS.ENTER]
+          );
+
+          sleep(5000)
+
+          const result = response.includes("Successfully generated the code.")
+
+          const listResponse = await executeWithInput(
+            'cd test/templates/ts-groth16 && ls'
+          );
+
+          expect(listResponse).to.equal('circuits\n' +
+            'contracts\n' +
+            'hardhat.config.ts\n' +
+            'package.json\n' +
+            'README.md\n' +
+            'scripts\n' +
+            'test\n' +
+            'tsconfig.json\n' +
+            'util\n'
+          )
+
+          expect(result).to.equals(true)
+
+        });
+
+        it("should contain correct contributer name", async () => {
+
+          const filePath = path.join(process.cwd(), `/test/templates/ts-groth16/scripts/compile-circuit.sh`);
+          let fileContent = await fsExtra.readFile(filePath);
+          let result = fileContent.toString().includes('--name="Alice"')
+          expect(result).to.equal(true)
+        })
+
+        it("should contain correct entropy string", async () => {
+          const filePath = path.join(process.cwd(), `/test/templates/ts-groth16/scripts/compile-circuit.sh`);
+          let fileContent = await fsExtra.readFile(filePath);
+          let result = fileContent.toString().includes(`-e="cafe's mayfair biscuit"`)
+          expect(result).to.equal(true)
+        })
+
       });
-      describe('Plonk', () => {
+      describe('Ts Plonk', () => {
+        it('should create plonk typescript template', async () => {
+
+          const response = await executeWithInput(
+            'cd test/templates && shield init', ["ts-plonk", KEYS.ENTER, KEYS.DOWN, KEYS.ENTER, KEYS.DOWN, KEYS.ENTER, KEYS.ESCAP]
+          );
+
+          sleep(5000)
+
+          const result = response.includes("Successfully generated the code.")
+
+          const listResponse = await executeWithInput(
+            'cd test/templates/ts-plonk && ls'
+          );
+
+          expect(listResponse).to.equal('circuits\n' +
+            'contracts\n' +
+            'hardhat.config.ts\n' +
+            'package.json\n' +
+            'README.md\n' +
+            'scripts\n' +
+            'test\n' +
+            'tsconfig.json\n' +
+            'util\n'
+          )
+
+          expect(result).to.equals(true)
+
+        });
       });
-    });
+
+      describe('Javascript', () => {
+        describe('Js Groth16', () => {
+
+          it('should create groth16 javascript template', async () => {
+
+            const response = await executeWithInput(
+              'cd test/templates && shield init', ["js-groth16", KEYS.ENTER, KEYS.ENTER, KEYS.ENTER, "Alice", KEYS.ENTER, "cafe's mayfair biscuit", KEYS.ENTER]
+            );
+
+            sleep(5000)
+
+            const result = response.includes("Successfully generated the code.")
+
+            const listResponse = await executeWithInput(
+              'cd test/templates/js-groth16 && ls'
+            );
+
+            expect(listResponse).to.equal('circuits\n' +
+              'contracts\n' +
+              'hardhat.config.js\n' +
+              'package.json\n' +
+              'README.md\n' +
+              'scripts\n' +
+              'test\n' +
+              'util\n'
+            )
+
+            expect(result).to.equals(true)
+
+          });
+
+          it("should contain correct contributer name", async () => {
+            const filePath = path.join(process.cwd(), `/test/templates/js-groth16/scripts/compile-circuit.sh`);
+            let fileContent = await fsExtra.readFile(filePath);
+            let result = fileContent.toString().includes('--name="Alice"')
+            expect(result).to.equal(true)
+          })
+
+          it("should contain correct entropy string", async () => {
+            const filePath = path.join(process.cwd(), `/test/templates/js-groth16/scripts/compile-circuit.sh`);
+            let fileContent = await fsExtra.readFile(filePath);
+            let result = fileContent.toString().includes(`-e="cafe's mayfair biscuit"`)
+            expect(result).to.equal(true)
+          })
+
+        });
+        describe('Js Plonk', () => {
+          it('should create plonk javascript template', async () => {
+
+            const response = await executeWithInput(
+              'cd test/templates && shield init', ["js-plonk", KEYS.ENTER, KEYS.ENTER, KEYS.DOWN, KEYS.ENTER, KEYS.ESCAP]
+            );
+
+            sleep(5000)
+
+            const result = response.includes("Successfully generated the code.")
+
+            const listResponse = await executeWithInput(
+              'cd test/templates/js-plonk && ls'
+            );
+
+            expect(listResponse).to.equal('circuits\n' +
+              'contracts\n' +
+              'hardhat.config.js\n' +
+              'package.json\n' +
+              'README.md\n' +
+              'scripts\n' +
+              'test\n' +
+              'util\n'
+            )
+
+            expect(result).to.equals(true)
+
+          });
+        });
+      });
+    })
   })
 });
