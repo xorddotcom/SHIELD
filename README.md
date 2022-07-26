@@ -9,6 +9,11 @@ The core reason is to provide libraries, plugins, and testing tools to ensure co
 
 Circomlib (which is the most popular library to build circom circuits) has over 1800 weekly downloads.
 
+## Pre-Requisite
+- Install [rust](https://www.rust-lang.org/tools/install)
+- Install [circom](https://docs.circom.io/getting-started/installation/)
+- Install [nodejs](https://nodejs.org/en/download/)
+
 ## Installation
 
 Install shield globally with npm:
@@ -18,6 +23,8 @@ $ npm install -g @shield/cli
 ```
     
 ## Usage
+
+To create a the sample project, run
 
 ```bash
 $ shield init
