@@ -112,8 +112,8 @@ export const init = async () => {
                 ? "npm.cmd"
                 : "npm"
               : OS === "win"
-              ? "yarn.cmd"
-              : "yarn";
+                ? "yarn.cmd"
+                : "yarn";
           const args = val == "npm" ? ["install"] : [];
           const dependencies = spawn(command, args, { cwd: projectPath });
           dependencies.stdout.on("data", (data) => {
