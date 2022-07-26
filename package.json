@@ -1,5 +1,5 @@
 {
-  "name": "shieldjs",
+  "name": "@shield/cli",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -10,10 +10,13 @@
   "bin": {
     "shield": "./index.js"
   },
+  "engines": {
+    "node": "^16"
+  },
   "type": "module",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["shield","cli","circom","circomlib","snarkjs"],
+  "author": "Khuzama Shahid(@khuzama98), Abdul Qadir(@sleepyqadir)",
+  "license": "MIT",
   "dependencies": {
     "chalk": "^5.0.1",
     "commander": "^9.4.0",

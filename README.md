@@ -10,9 +10,12 @@ The core reason is to provide libraries, plugins, and testing tools to ensure co
 Circomlib (which is the most popular library to build circom circuits) has over 1800 weekly downloads.
 
 ## Pre-Requisite
-- Install [rust](https://www.rust-lang.org/tools/install)
-- Install [circom](https://docs.circom.io/getting-started/installation/)
-- Install [nodejs](https://nodejs.org/en/download/)
+You have to setup environment before using it, install following to get started with shield cli.
+- [rust](https://www.rust-lang.org/tools/install)
+- [circom](https://docs.circom.io/getting-started/installation/)
+- [nodejs](https://nodejs.org/en/download/)
+
+In future versions we'll provide a script to setup environment with a single command execution.
 
 ## Installation
 
