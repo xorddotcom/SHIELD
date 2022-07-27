@@ -22,7 +22,7 @@ In future versions we'll provide a script to setup environment with a single com
 Install shield globally with npm:
 
 ```bash
-$ npm install -g @shield/cli
+$ npm install -g @xorddotcom/shield
 ```
     
 ## Usage
