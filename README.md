@@ -36,7 +36,7 @@ $ shield init
 Currently we are only providing the inialization feature in this CLI but we're working iteratively and working on other features as well that we have in our roadmap such as compilation and debugging with error stacktrace.
 
 ## Contribution
-For making a contribution refer to [CONTRIBUTION.md](https://github.com/xorddotcom/SHIELD/CONTRIBUTION.md) file.
+For making a contribution refer to [CONTRIBUTION.md](https://github.com/xorddotcom/SHIELD/blob/main/CONTRIBUTION.md) file.
 
 ## License
 
