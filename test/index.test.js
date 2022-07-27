@@ -1,13 +1,8 @@
-
 import { expect } from 'chai';
 import { executeWithInput, KEYS } from '../utils/cmd.js';
 import path from "path";
 import fsExtra from "fs-extra";
 
-// TODO debug the edge case OF failing test cases
-// TODO ESCAP characters testing
-// TODO add the test case if the cli doesn't exists
-// TODO Installating of the cli
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -21,7 +16,6 @@ describe('The Shield CLI', () => {
     );
   })
 
-
   after(async () => {
     await executeWithInput(
       'rm -rf test/templates',
@@ -29,7 +23,6 @@ describe('The Shield CLI', () => {
   })
 
   describe('Shield Compile', () => {
-
     it('should through error on empty sheild command', async () => {
       try {
         await executeWithInput(
@@ -39,14 +32,12 @@ describe('The Shield CLI', () => {
         expect(err).to.contains.oneOf(["shield", "init", "help"])
       }
     });
-
     it('should work on help command', async () => {
       const response = await executeWithInput(
         'shield --help',
       );
       expect(response).to.contains.oneOf(["shield", "init", "help"])
     });
-
     it('should trough error on invalid help command', async () => {
       try {
         await executeWithInput(
@@ -61,7 +52,6 @@ describe('The Shield CLI', () => {
     });
 
   })
-
   describe('Shield Init', () => {
 
     it('should fail to initialize the folder if it already exists', async () => {
