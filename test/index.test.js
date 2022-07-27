@@ -81,7 +81,7 @@ describe('The Shield CLI', () => {
     });
 
 
-    it('should trough error on invalid initialize command', async () => {
+    it('should through error on invalid initialize command', async () => {
       try {
         await executeWithInput(
           'shield --initialize',
