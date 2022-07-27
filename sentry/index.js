@@ -6,8 +6,10 @@ const SENTRY_DSN =
 
 export class Reporter {
   static reportError(error) {
-    const instance = Reporter._getInstance();
+    try{
 
+      const instance = Reporter._getInstance();
+      
     if (!instance.enabled) {
       return;
     }
@@ -23,8 +25,11 @@ export class Reporter {
     Sentry.setExtra("shieldVersion", shieldVersion);
 
     Sentry.captureException(error);
-
+    
     return true;
+  } catch(e) {
+    return undefined
+  }
   }
 
   /**

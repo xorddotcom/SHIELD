@@ -24,18 +24,26 @@ export const init = async () => {
         message: "Please enter the name of project?",
         initial: "shield-demo",
         onSubmit: async (name, value) => {
-          value = value.trim();
-          if (
-            value &&
-            /^[^\s^\x00-\x1f\\?*:"";<>|\/.][^\x00-\x1f\\?*:"";<>|\/]*[^\s^\x00-\x1f\\?*:"";<>|\/.]+$/.test(
-              value
-            )
-          ) {
-            console.log("");
-            const temp = await getEmptyDir(value.trim());
-            projectName = value.trim();
-          } else {
-            printNameValidationError();
+          try {
+            value = value.trim();
+            if (
+              value &&
+              /^[^\s^\x00-\x1f\\?*:"";<>|\/.][^\x00-\x1f\\?*:"";<>|\/]*[^\s^\x00-\x1f\\?*:"";<>|\/.]+$/.test(
+                value
+              )
+            ) {
+              console.log("");
+              const temp = await getEmptyDir(value.trim());
+              projectName = value.trim();
+            } else {
+              printNameValidationError();
+              process.exit(1);
+            }
+          } catch (e) {
+            console.log(
+              chalk.red(e.message ? e.message : "Error: Something went wrong.")
+            );
+            console.log(Reporter.reportError(e));
             process.exit(1);
           }
         },
@@ -74,7 +82,7 @@ export const init = async () => {
               )
             );
             Reporter.reportError(e);
-            process.exit(1)
+            process.exit(1);
           }
         },
       },
@@ -116,7 +124,7 @@ export const init = async () => {
               )
             );
             Reporter.reportError(e);
-            process.exit(1)
+            process.exit(1);
           }
         },
       },
@@ -162,7 +170,7 @@ export const init = async () => {
               chalk.red(e.message ? e.message : "Error while installing deps.")
             );
             Reporter.reportError(e);
-            process.exit(1)
+            process.exit(1);
           }
         },
       },
@@ -170,7 +178,7 @@ export const init = async () => {
   } catch (e) {
     console.log(chalk.red(e.message ? e.message : "Aborted."));
     Reporter.reportError(e);
-    process.exit(1)
+    process.exit(1);
   }
 };
 
