@@ -62,8 +62,6 @@ describe("Multiplier", function () {
 
       const { solProof, publicSignals } = await prove(witness);
 
-      await proveTwo(witness)
-
       expect(await multiplier.verify(solProof, publicSignals[0])).not.to.be.reverted;
     });
     it("Should return false for invalid proof", async function () {

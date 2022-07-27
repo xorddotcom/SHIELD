@@ -1,25 +1,32 @@
 {
-  "name": "shieldjs",
+  "name": "@shield/cli",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node --experimental-specifier-resolution=node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --timeout=10000"
   },
   "bin": {
     "shield": "./index.js"
   },
+  "engines": {
+    "node": "^16"
+  },
   "type": "module",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["shield","cli","circom","circomlib","snarkjs"],
+  "author": "Khuzama Shahid(@khuzama98), Abdul Qadir(@sleepyqadir)",
+  "license": "MIT",
   "dependencies": {
+    "@sentry/node": "^7.7.0",
+    "chai": "^4.3.6",
     "chalk": "^5.0.1",
     "commander": "^9.4.0",
+    "concat-stream": "^2.0.0",
     "enquirer": "^2.3.6",
     "find-up": "^6.3.0",
     "fs-extra": "^10.1.0",
+    "mocha": "^10.0.0",
     "ora": "^6.1.2"
   }
 }

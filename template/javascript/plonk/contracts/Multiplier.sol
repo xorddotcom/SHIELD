@@ -11,12 +11,6 @@ import "hardhat/console.sol";
 contract Multiplier {
     IVerifier public immutable verifier;
 
-    struct Proof {
-        uint256[2] a;
-        uint256[2][2] b;
-        uint256[2] c;
-    }
-
     constructor(IVerifier _verifier) payable {
         verifier = _verifier;
     }
