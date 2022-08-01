@@ -1,49 +1,42 @@
-
-import { exec } from "child_process";
-import concat from "concat-stream"
-
+import { exec, execSync } from 'child_process';
+import concat from 'concat-stream';
 
 export const KEYS = {
-  ENTER: "\x0D",
+  ENTER: '\x0D',
   DOWN: '\x1B\x5B\x42',
   UP: '\x1B\x5B\x41',
   SPACE: '\x20',
-  ESCAP: '\x1B'
+  ESCAP: '\x1B',
+};
 
-}
-
-export function runCommand(command, callback) {
+export const runCommand = (command, callback) => {
   return exec(
     command,
-    (
-      function () {
-        return function (err, data, stderr) {
-          if (!callback)
-            return;
+    (function () {
+      return function (err, data, stderr) {
+        if (!callback) return;
 
-          callback(err, data, stderr);
-        }
-      }
-    )(callback)
+        callback(err, data, stderr);
+      };
+    })(callback)
   );
-}
+};
 
-export function runSync(command) {
+export const runSync = (command) => {
   try {
     return {
       data: execSync(command).toString(),
       err: null,
-      stderr: null
-    }
-  }
-  catch (error) {
+      stderr: null,
+    };
+  } catch (error) {
     return {
       data: null,
       err: error.stderr.toString(),
-      stderr: error.stderr.toString()
-    }
+      stderr: error.stderr.toString(),
+    };
   }
-}
+};
 
 /**
  * Creates a command and executes inputs (user responses) to the stdin
@@ -53,19 +46,22 @@ export function runSync(command) {
  * @param {Array} inputs (Optional) Array of inputs (user responses)
  * @param {Object} opts (optional) Environment variables
  */
-export function executeWithInput(process, inputs = [], opts = {}) {
+export const executeWithInput = (
+  process: string,
+  inputs = [],
+  opts = { env: null, timeout: 200, maxTimeout: 100000 }
+): Promise<string> => {
   if (!Array.isArray(inputs)) {
     opts = inputs;
     inputs = [];
   }
-
   const { env = null, timeout = 200, maxTimeout = 100000 } = opts;
-  const childProcess = runCommand(process)
+  const childProcess = runCommand(process);
   childProcess.stdin.setEncoding('utf-8');
 
   let currentInputTimeout, killIOTimeout;
 
-  const loop = inputs => {
+  const loop = (inputs) => {
     if (killIOTimeout) {
       clearTimeout(killIOTimeout);
     }
@@ -95,7 +91,7 @@ export function executeWithInput(process, inputs = [], opts = {}) {
 
   const promise = new Promise((resolve, reject) => {
     // Get errors from CLI
-    childProcess.stderr.on('data', data => {
+    childProcess.stderr.on('data', (data) => {
       // Log debug I/O statements on tests
       if (env && env.DEBUG) {
         console.log('error:', data.toString());
@@ -103,14 +99,14 @@ export function executeWithInput(process, inputs = [], opts = {}) {
     });
 
     // Get output from CLI
-    childProcess.stdout.on('data', data => {
+    childProcess.stdout.on('data', (data) => {
       // Log debug I/O statements on tests
       if (env && env.DEBUG) {
         console.log('output:', data.toString());
       }
     });
 
-    childProcess.stderr.once('data', err => {
+    childProcess.stderr.once('data', (err) => {
       childProcess.stdin.end();
 
       if (currentInputTimeout) {
@@ -126,11 +122,10 @@ export function executeWithInput(process, inputs = [], opts = {}) {
     loop(inputs);
 
     childProcess.stdout.pipe(
-      concat(result => {
+      concat((result) => {
         if (killIOTimeout) {
           clearTimeout(killIOTimeout);
         }
-
         resolve(result.toString());
       })
     );
@@ -141,4 +136,4 @@ export function executeWithInput(process, inputs = [], opts = {}) {
   promise.attachedProcess = childProcess;
 
   return promise;
-}
+};
