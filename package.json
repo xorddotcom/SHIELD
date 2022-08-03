@@ -5,13 +5,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "start": "node --experimental-specifier-resolution=node index.js",
-    "test": "jest",
-    "build": "rm -rf dist/ && tsc",
-    "lint": "eslint 'src/**/*.ts' --fix"
+    "start": "node dist/src/index.js",
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf dist/",
+    "lint": "eslint 'src/**/*.ts' 'utils/**/*.ts' 'test/**/*.ts' --fix",
+    "test": "jest"
   },
   "bin": {
-    "shield": "dist/index.js"
+    "shield": "dist/src/index.js"
   },
   "keywords": [
     "shield",
@@ -30,20 +31,23 @@
     "commander": "^9.4.0",
     "concat-stream": "^2.0.0",
     "enquirer": "^2.3.6",
-    "find-up": "^6.3.0",
+    "find-up": "^4.1.0",
     "fs-extra": "^10.1.0",
     "locate-path": "^7.0.0",
-    "mocha": "^10.0.0",
-    "ora": "^5.4.1"
+    "ora": "^5.4.1",
+    "typescript": "^4.7.4"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.1",
+    "@types/concat-stream": "^2.0.0",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^28.1.6",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.6.3",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
     "eslint": "^8.21.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "husky": "^8.0.1",
     "jest": "^28.1.3",

@@ -1,5 +1,4 @@
-import { init } from './init';
+import { init } from "./init";
+import { version } from "./version";
 
-export {
-    init
-}
+export { init, version };
