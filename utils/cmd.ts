@@ -18,7 +18,7 @@ export const runCommand = (command, callback) => {
 
         callback(err, data, stderr);
       };
-    })(callback)
+    })()
   );
 };
 
@@ -50,13 +50,14 @@ export const executeWithInput = (
   process: string,
   inputs = [],
   opts = { env: null, timeout: 200, maxTimeout: 100000 }
-): Promise<string> => {
+): Promise<unknown> => {
   if (!Array.isArray(inputs)) {
     opts = inputs;
     inputs = [];
   }
   const { env = null, timeout = 200, maxTimeout = 100000 } = opts;
-  const childProcess = runCommand(process);
+  const childProcess = runCommand(process, () => {});
+  //@ts-ignore
   childProcess.stdin.setEncoding('utf-8');
 
   let currentInputTimeout, killIOTimeout;
@@ -73,6 +74,7 @@ export const executeWithInput = (
       // maxTimeout to respond, kill the childProcess and notify user
       killIOTimeout = setTimeout(() => {
         console.error('Error: Reached I/O timeout');
+        //@ts-ignore
         childProcess.kill(constants.signals.SIGTERM);
       }, maxTimeout);
 
@@ -133,6 +135,7 @@ export const executeWithInput = (
 
   // Appending the process to the promise, in order to
   // add additional parameters or behavior (such as IPC communication)
+  // @ts-ignore
   promise.attachedProcess = childProcess;
 
   return promise;
