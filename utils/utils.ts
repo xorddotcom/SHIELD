@@ -1,6 +1,6 @@
-import chalk from 'chalk';
-import path from 'path';
-import fsExtra from 'fs-extra';
+import chalk from "chalk";
+import path from "path";
+import fsExtra from "fs-extra";
 
 export const getEmptyDir = async (name: string) => {
   const tmpDir = path.join(process.cwd(), `/${name}`);
@@ -15,7 +15,7 @@ export const getEmptyDir = async (name: string) => {
     );
     process.exit(1);
   }
-  const empty = await fsExtra.emptyDir(tmpDir);
+  await fsExtra.emptyDir(tmpDir);
   return tmpDir;
 };
 
@@ -51,9 +51,9 @@ export const updateCompileCircuit = async (
 
     fileContent = fileContent
       .toString()
-      .replace('1st Contributor Name', contributionName);
+      .replace("1st Contributor Name", contributionName);
 
-    fileContent = fileContent.toString().replace('random text', entropy);
+    fileContent = fileContent.toString().replace("random text", entropy);
 
     const res = await fsExtra.writeFile(filePath, fileContent);
     return res;

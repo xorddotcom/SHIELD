@@ -8,12 +8,13 @@
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
-    "typeRoots": ["../../node_modules/@types", "./@types"],
     "noEmitOnError": true,
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "typeRoots": ["node_modules/@types", "/@types"],
+    "types": ["jest", "node"]
   },
-  "include": ["src"],
+  "include": ["src/**/*.ts", "tests/*.ts"],
   "exclude": ["node_modules", "template"]
 }
