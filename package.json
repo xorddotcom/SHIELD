@@ -8,8 +8,10 @@
     "start": "node dist/src/index.js",
     "build": "npm run clean && tsc",
     "clean": "rm -rf dist/",
+    "setup": "npm install -g",
     "lint": "eslint 'src/**/*.ts' 'utils/**/*.ts' 'test/**/*.ts' --fix",
-    "test": "jest"
+    "test": "npm run build && npm run setup && jest",
+    "postinstall": "husky install"
   },
   "bin": {
     "shield": "dist/src/index.js"
