@@ -40,13 +40,13 @@ export const runCommand = (
  * Creates a command and executes inputs (user responses) to the stdin
  * Returns a promise that resolves when all inputs are sent
  * Rejects the promise if any error
- * @param {string} process Path of the process to execute
+ * @param {string} command command to the process to execute
  * @param {Array} inputs (Optional) Array of inputs (user responses)
  * @param {Object} opts (optional) Environment variables
  */
 
 export const executeWithInput = (
-  process: string,
+  command: string,
   inputs: string[] = [],
   opts: Options = { env: null, timeout: 200, maxTimeout: 100000 }
 ): Promise<string> => {
@@ -55,19 +55,19 @@ export const executeWithInput = (
     inputs = [];
   }
   const { env, timeout, maxTimeout } = opts;
-  const childProcess = runCommand(process, () => {});
+  const childProcess = runCommand(command, () => {});
   // @ts-ignore
   childProcess.stdin!.setEncoding("utf-8");
 
   let currentInputTimeout: string | number | NodeJS.Timeout | undefined;
   let killIOTimeout: string | number | NodeJS.Timeout | undefined;
 
-  const loop = (inputs: string[] | any[]) => {
+  const loop = (statments: string[] | any[]) => {
     if (killIOTimeout) {
       clearTimeout(killIOTimeout);
     }
 
-    if (!inputs.length) {
+    if (!statments.length) {
       childProcess.stdin!.end();
 
       // Set a timeout to wait for CLI response. If CLI takes longer than
@@ -82,12 +82,12 @@ export const executeWithInput = (
     }
 
     currentInputTimeout = setTimeout(() => {
-      childProcess.stdin!.write(inputs[0]);
+      childProcess.stdin!.write(statments[0]);
       // Log debug I/O statements on tests
       if (env && env.DEBUG) {
-        console.log("input:", inputs[0]);
+        console.log("input:", statments[0]);
       }
-      loop(inputs.slice(1));
+      loop(statments.slice(1));
     }, timeout);
   };
 

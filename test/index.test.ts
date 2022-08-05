@@ -1,7 +1,12 @@
+// @ts-nocheck
+
 import path from "path";
 import fsExtra from "fs-extra";
 import { executeWithInput, KEYS } from "../utils/cmd";
 // import "@types/jest";
+import { indexDist } from "../utils/utils";
+import { getPackageJson } from "../utils/packageInfo";
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -14,29 +19,42 @@ describe("The Shield CLI", () => {
   afterAll(async () => {
     await executeWithInput("rm -rf test/templates");
   });
-
   describe("Shield Compile", () => {
     it("should through error on empty sheild command", async () => {
       try {
         await executeWithInput("shield");
       } catch (err) {
-        // expect(err).to.contains.oneOf(["shield", "init", "help"]);
+        const numberOfMatches = ["shield", "Usage", "init", "help"].filter(
+          (x) => err.indexOf(x) > -1
+        ).length;
+        expect(numberOfMatches).toBeGreaterThan(0);
       }
     });
     it("should work on help command", async () => {
       const response = await executeWithInput("shield --help");
-      // expect(response).to.contains.oneOf(["shield", "init", "help"]);
+      const numberOfMatches = ["shield", "Usage", "init", "help"].filter(
+        (x) => response.indexOf(x) > -1
+      ).length;
+      expect(numberOfMatches).toBeGreaterThan(0);
     });
     it("should trough error on invalid help command", async () => {
       try {
-        await executeWithInput("shield --helpme");
+        await executeWithInput(`node ./dist/src/index.js --helpme`);
       } catch (err) {
-        expect(err).toBe(
-          "error: unknown option '--helpme'\n(Did you mean --help?)\n"
-        );
+        const response = err.includes("unknown option '--helpme");
+        expect(response).toBe(true);
       }
     });
   });
+
+  describe("Shield Version", () => {
+    it("should log correct version information", async () => {
+      const response = await executeWithInput(`shield --version`);
+      const packageJson = await getPackageJson();
+      expect(response.trim()).toBe(packageJson.version);
+    });
+  });
+
   describe("Shield Init", () => {
     it("should fail to initialize the folder if it already exists", async () => {
       await executeWithInput(
@@ -48,9 +66,16 @@ describe("The Shield CLI", () => {
         ["demo-init", KEYS.ENTER]
       );
 
+      const nodeResponse = await executeWithInput(
+        `cd test/templates && ${indexDist} init`,
+        ["demo-init", KEYS.ENTER]
+      );
+
       const result = response.includes("already exist");
+      const nodeResult = nodeResponse.includes("already exist");
 
       expect(result).toBe(true);
+      expect(nodeResult).toBe(true);
     });
 
     it("should through error on invalid initialize command", async () => {
@@ -127,7 +152,7 @@ describe("The Shield CLI", () => {
       describe("Ts Plonk", () => {
         it("should create plonk typescript template", async () => {
           const response = await executeWithInput(
-            "cd test/templates && shield init",
+            `cd test/templates && ${indexDist} init`,
             [
               "ts-plonk",
               KEYS.ENTER,
@@ -229,7 +254,7 @@ describe("The Shield CLI", () => {
         describe("Js Plonk", () => {
           it("should create plonk javascript template", async () => {
             const response = await executeWithInput(
-              "cd test/templates && shield init",
+              `cd test/templates && ${indexDist} init`,
               [
                 "js-plonk",
                 KEYS.ENTER,

@@ -2,6 +2,8 @@ import chalk from "chalk";
 import path from "path";
 import fsExtra from "fs-extra";
 
+export const indexDist = "node ../../dist/src/index.js";
+
 export const getEmptyDir = async (name: string) => {
   const tmpDir = path.join(process.cwd(), `/${name}`);
   console.log({ tmpDir });
