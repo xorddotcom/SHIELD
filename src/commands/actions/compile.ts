@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import chalk from "chalk";
 import { spawn } from "child_process";
+import { prompt } from "enquirer";
 import { getPackageRoot } from "../../../utils/packageInfo";
 import { bumpSolidityVersion } from "../../../utils/utils";
 
@@ -112,27 +113,64 @@ export const compile = async () => {
         circuits: [...userConfig.circom.circuits],
       },
     };
+
     console.log("final config --", finalConfig);
+    console.log("take input --->", finalConfig.circom.circuits);
 
     for (let i = 0; i < finalConfig.circom.circuits.length; i++) {
-      const executeCompile = spawn("bash", [
-        `${getPackageRoot()}/src/commands/scripts/compile.sh`,
-        finalConfig.circom.inputBasePath as string,
-        finalConfig.circom.outputBasePath as string,
-        finalConfig.circom.ptau,
-        finalConfig.circom.circuits[i].name,
-        finalConfig.circom.circuits[i].protocol as string,
-        finalConfig.circom.circuits[i].circuit as string,
-        finalConfig.circom.circuits[i].zkey as string,
-      ]);
-      executeCompile.stdout.on("data", (data) => console.log(data.toString()));
-      executeCompile.stderr.on("data", (data) => console.log(data.toString()));
-      executeCompile.stdout.once("close", () => {
-        bumpSolidityVersion(finalConfig.circom.circuits[i].name);
-      });
+      if (finalConfig.circom.circuits[i].protocol === "groth16") {
+        console.log("take input --->", finalConfig.circom.circuits[i].protocol);
+        let contributerName = "";
+        let randomEntropy = "";
+        await prompt([
+          {
+            type: "input",
+            name: "contributerName",
+            message: "Please enter the contribution name for groth16 setup?",
+            initial: "1st Contributor Name",
+            skip: () => finalConfig.circom.circuits[i].protocol === "plonk",
+            result: async (value): Promise<string> => {
+              contributerName = value.toLowerCase();
+              return contributerName;
+            },
+          },
+          {
+            type: "input",
+            name: "entropy",
+            message: "Please enter the entropy for groth16 setup?",
+            initial: "random text",
+            skip: () => finalConfig.circom.circuits[i].protocol === "plonk",
+            result: async (value): Promise<string> => {
+              randomEntropy = value.toLowerCase();
+              return randomEntropy;
+            },
+          },
+        ]);
+
+        console.log({ contributerName, randomEntropy });
+
+        const executeCompile = spawn("bash", [
+          `${getPackageRoot()}/src/commands/scripts/compile.sh`,
+          finalConfig.circom.inputBasePath as string,
+          finalConfig.circom.outputBasePath as string,
+          finalConfig.circom.ptau,
+          finalConfig.circom.circuits[i].name,
+          finalConfig.circom.circuits[i].protocol as string,
+          finalConfig.circom.circuits[i].circuit as string,
+          finalConfig.circom.circuits[i].zkey as string,
+        ]);
+        executeCompile.stdout.on("data", (data) =>
+          console.log(data.toString())
+        );
+        executeCompile.stderr.on("data", (data) =>
+          console.log(data.toString())
+        );
+        executeCompile.stdout.once("close", () => {
+          bumpSolidityVersion(finalConfig.circom.circuits[i].name);
+        });
+      }
     }
   } catch (e: any) {
     console.log(e.message);
-    // throw e;
   }
 };

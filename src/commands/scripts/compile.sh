@@ -38,7 +38,7 @@ if [ -f "${INPUT_BASE_PATH}${PTAU}" ]; then
   echo "${PTAU} already exists. Skipping."
 else
   echo "Downloading ${PTAU}"
-  wget https://hermez.s3-eu-west-1.amazonaws.com/$PTAU
+  wget -O "${INPUT_BASE_PATH}${PTAU}" https://hermez.s3-eu-west-1.amazonaws.com/$PTAU
 fi
 
 echo "Compiling ${CIRCUIT_NAME}..."
