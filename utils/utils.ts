@@ -4,11 +4,37 @@ import fsExtra from "fs-extra";
 
 export const indexDist = "node ../../dist/src/index.js";
 
+const groth16InterfaceContent = `
+    
+    //  SPDX-License-Identifier: GPL-3.0-only
+
+    pragma solidity ^0.8.0;
+
+     interface IVerifier {
+         function verifyProof(
+             uint256[2] calldata a,
+             uint256[2][2] calldata b,
+             uint256[2] calldata c,
+             uint256[] memory input
+         ) external view returns (bool);
+    }`;
+
+const plonkInterfaceContent = `
+
+   //  SPDX-License-Identifier: GPL-3.0-only
+
+   pragma solidity ^0.8.0;
+
+   interface IVerifier {
+      function verifyProof(bytes memory proof, uint256[] memory pubSignals)
+         external
+         view
+         returns (bool);
+  }`;
+
 export const getEmptyDir = async (name: string) => {
   const tmpDir = path.join(process.cwd(), `/${name}`);
-  console.log({ tmpDir });
   const dir = await fsExtra.ensureDir(tmpDir);
-  console.log({ dir });
   if (dir === undefined) {
     console.log(
       chalk.red(
@@ -65,7 +91,10 @@ export const updateCompileCircuit = async (
   }
 };
 
-export const bumpSolidityVersion = async (CIRCUIT_NAME: string) => {
+export const bumpSolidityVersion = async (
+  CIRCUIT_NAME: string,
+  protocol: string
+) => {
   try {
     const solidityRegex = /pragma solidity \^\d+\.\d+\.\d+/;
 
@@ -79,34 +108,33 @@ export const bumpSolidityVersion = async (CIRCUIT_NAME: string) => {
     const tmpDir = path.join(process.cwd(), `/contracts/interfaces`);
     await fsExtra.ensureDir(tmpDir);
 
-    const interfaceContent = `
-    
-    //  SPDX-License-Identifier: GPL-3.0-only
-
-    pragma solidity ^0.8.0;
-
-     interface IVerifier {
-         function verifyProof(
-             uint256[2] calldata a,
-             uint256[2][2] calldata b,
-             uint256[2] calldata c,
-             uint256[] memory input
-         ) external view returns (bool);
-    }`;
-
     fsExtra.createFileSync(
       `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`
     );
 
-    const inputVariable = content
-      .split("uint[2] memory c,")[1]
-      .split(")")[0]
-      .trim();
+    let inputVariable = "";
+    let interfaceBumped = "";
+    if (protocol === "groth16") {
+      inputVariable = content
+        .split("uint[2] memory c,")[1]
+        .split(")")[0]
+        .trim();
 
-    const interfaceBumped = interfaceContent.replace(
-      "uint256[] memory input",
-      inputVariable
-    );
+      interfaceBumped = groth16InterfaceContent.replace(
+        "uint256[] memory input",
+        inputVariable
+      );
+    } else {
+      inputVariable = content
+        .split("bytes memory proof,")[1]
+        .split(")")[0]
+        .trim();
+
+      interfaceBumped = plonkInterfaceContent.replace(
+        "uint256[] memory pubSignals",
+        inputVariable
+      );
+    }
 
     const bumped = content.replace(solidityRegex, "pragma solidity ^0.8.0");
     const bumpedContractName = bumped.replace(
