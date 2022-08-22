@@ -65,7 +65,7 @@ export const updateCompileCircuit = async (
   }
 };
 
-export const bumpSolidityVersion = (CIRCUIT_NAME: string) => {
+export const bumpSolidityVersion = async (CIRCUIT_NAME: string) => {
   try {
     const solidityRegex = /pragma solidity \^\d+\.\d+\.\d+/;
 
@@ -76,9 +76,26 @@ export const bumpSolidityVersion = (CIRCUIT_NAME: string) => {
       }
     );
 
-    const interfaceContent = fsExtra.readFileSync(
-      `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`,
-      { encoding: "utf-8" }
+    const tmpDir = path.join(process.cwd(), `/contracts/interfaces`);
+    await fsExtra.ensureDir(tmpDir);
+
+    const interfaceContent = `
+    
+    //  SPDX-License-Identifier: GPL-3.0-only
+
+    pragma solidity ^0.8.0;
+
+     interface IVerifier {
+         function verifyProof(
+             uint256[2] calldata a,
+             uint256[2][2] calldata b,
+             uint256[2] calldata c,
+             uint256[] memory input
+         ) external view returns (bool);
+    }`;
+
+    fsExtra.createFileSync(
+      `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`
     );
 
     const inputVariable = content
@@ -87,7 +104,7 @@ export const bumpSolidityVersion = (CIRCUIT_NAME: string) => {
       .trim();
 
     const interfaceBumped = interfaceContent.replace(
-      "uint256[1] memory input",
+      "uint256[] memory input",
       inputVariable
     );
 
