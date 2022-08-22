@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 module.exports = {
   env: {
     browser: false,
@@ -6,10 +7,7 @@ module.exports = {
   },
   extends: ["plugin:prettier/recommended"],
   parser: "@typescript-eslint/parser",
-  plugins: [
-    "eslint-plugin-import",
-    "@typescript-eslint",
-  ],
+  plugins: ["eslint-plugin-import", "@typescript-eslint"],
   rules: {
     "@typescript-eslint/adjacent-overload-signatures": "error",
     "@typescript-eslint/array-type": [
