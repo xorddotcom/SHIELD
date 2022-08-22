@@ -28,3 +28,30 @@ export const findClosestPackageJson = (file: string) => {
   const res = findup.sync("package.json", { cwd: path.dirname(file) });
   return res;
 };
+
+export function getShieldVersion() {
+  const packageJsonPath = getPackageJsonPath();
+
+  if (packageJsonPath === null) {
+    return null;
+  }
+
+  try {
+    const packageJson = fsExtra.readJsonSync(
+      packageJsonPath ? packageJsonPath : ""
+    );
+    return packageJson.version;
+  } catch {
+    return null;
+  }
+}
+
+export const getInputJson = async (input: string) => {
+  const inputString = await fsExtra.readFile(input, "utf8");
+  console.log(inputString);
+  try {
+    return JSON.parse(inputString.toString().replace(/^\uFEFF/, ""));
+  } catch (err: any) {
+    throw new Error(err);
+  }
+};

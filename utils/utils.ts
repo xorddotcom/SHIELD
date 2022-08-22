@@ -64,3 +64,48 @@ export const updateCompileCircuit = async (
     return null;
   }
 };
+
+export const bumpSolidityVersion = (CIRCUIT_NAME: string) => {
+  try {
+    const solidityRegex = /pragma solidity \^\d+\.\d+\.\d+/;
+
+    const content = fsExtra.readFileSync(
+      `./contracts/${CIRCUIT_NAME}_Verifier.sol`,
+      {
+        encoding: "utf-8",
+      }
+    );
+
+    const interfaceContent = fsExtra.readFileSync(
+      `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`,
+      { encoding: "utf-8" }
+    );
+
+    const inputVariable = content
+      .split("uint[2] memory c,")[1]
+      .split(")")[0]
+      .trim();
+
+    const interfaceBumped = interfaceContent.replace(
+      "uint256[1] memory input",
+      inputVariable
+    );
+
+    const bumped = content.replace(solidityRegex, "pragma solidity ^0.8.0");
+    const bumpedContractName = bumped.replace(
+      "contract Verifier",
+      `contract ${CIRCUIT_NAME}Verifier`
+    );
+
+    fsExtra.writeFileSync(
+      `./contracts/${CIRCUIT_NAME}_Verifier.sol`,
+      bumpedContractName
+    );
+    fsExtra.writeFileSync(
+      `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`,
+      interfaceBumped
+    );
+  } catch (e) {
+    throw e;
+  }
+};

@@ -1,3 +1,3 @@
 import { init } from "./init";
-
-export { init };
+import { compile } from "./compile";
+export { init, compile };

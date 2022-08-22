@@ -1,9 +1,20 @@
-import { init } from "../actions";
+import { compile, init } from "../actions";
 
-export const commands = [
+interface Icommands {
+  name: string;
+  description: string;
+  action(): any;
+}
+
+export const commands: Icommands[] = [
   {
     name: "init",
     description: "generates the boilerplate code",
     action: init,
+  },
+  {
+    name: "compile",
+    description: "compiles the circuits to verifer contracts",
+    action: compile,
   },
 ];
