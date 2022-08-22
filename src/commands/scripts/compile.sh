@@ -8,6 +8,8 @@ CIRCUIT_NAME=$4
 PROTOCOL=$5
 CIRCUIT_PATH=$6
 ZKEY=$7
+CONTRIBUTION=$8
+ENTROPY=$9
 OUTPUT_BASE_NAME=${OUTPUT_BASE_PATH//.}
 OUTPUT_BASE_NAME=${OUTPUT_BASE_NAME//\/}
 
@@ -38,7 +40,7 @@ if [ -f "${INPUT_BASE_PATH}${PTAU}" ]; then
   echo "${PTAU} already exists. Skipping."
 else
   echo "Downloading ${PTAU}"
-  wget https://hermez.s3-eu-west-1.amazonaws.com/$PTAU
+  wget -O "${INPUT_BASE_PATH}${PTAU}" https://hermez.s3-eu-west-1.amazonaws.com/$PTAU
 fi
 
 echo "Compiling ${CIRCUIT_NAME}..."
@@ -52,8 +54,13 @@ snarkjs r1cs info "$OUTPUT_BASE_PATH$CIRCUIT_NAME/$CIRCUIT_NAME.r1cs"
 
 # # Start a new zkey and make a contribution
 
+
+if [ "$PROTOCOL" = "groth16" ]; then
 snarkjs $PROTOCOL setup "$OUTPUT_BASE_PATH$CIRCUIT_NAME/$CIRCUIT_NAME.r1cs" "${INPUT_BASE_PATH}${PTAU}" "${OUTPUT_BASE_PATH}circuit_0000.zkey"
-snarkjs zkey contribute "${OUTPUT_BASE_PATH}circuit_0000.zkey" "${OUTPUT_BASE_PATH}${ZKEY}" --name="1st Contributor Name" -v -e="random text"
+snarkjs zkey contribute "${OUTPUT_BASE_PATH}circuit_0000.zkey" "${OUTPUT_BASE_PATH}${ZKEY}" --name="$CONTRIBUTION" -v -e="$ENTROPY"
+else
+snarkjs $PROTOCOL setup "$OUTPUT_BASE_PATH$CIRCUIT_NAME/$CIRCUIT_NAME.r1cs" "${INPUT_BASE_PATH}${PTAU}" "${OUTPUT_BASE_PATH}${ZKEY}"
+fi
 snarkjs zkey export verificationkey "${OUTPUT_BASE_PATH}${ZKEY}" "${OUTPUT_BASE_PATH}verification_key.json"
 
 # # # generate solidity contract
