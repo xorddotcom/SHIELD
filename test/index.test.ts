@@ -1,7 +1,4 @@
 // @ts-nocheck
-
-import path from "path";
-import fsExtra from "fs-extra";
 import { executeWithInput, KEYS } from "../utils/cmd";
 // import "@types/jest";
 import { indexDist } from "../utils/utils";
@@ -126,28 +123,6 @@ describe("The Shield CLI", () => {
 
           expect(result).toBe(true);
         });
-
-        it("should contain correct contributer name", async () => {
-          const filePath = path.join(
-            process.cwd(),
-            `/test/templates/ts-groth16/scripts/compile-circuit.sh`
-          );
-          const fileContent = await fsExtra.readFile(filePath);
-          const result = fileContent.toString().includes('--name="Alice"');
-          expect(result).toBe(true);
-        });
-
-        it("should contain correct entropy string", async () => {
-          const filePath = path.join(
-            process.cwd(),
-            `/test/templates/ts-groth16/scripts/compile-circuit.sh`
-          );
-          const fileContent = await fsExtra.readFile(filePath);
-          const result = fileContent
-            .toString()
-            .includes(`-e="cafe's mayfair biscuit"`);
-          expect(result).toBe(true);
-        });
       });
       describe("Ts Plonk", () => {
         it("should create plonk typescript template", async () => {
@@ -226,28 +201,6 @@ describe("The Shield CLI", () => {
                 "util\n"
             );
 
-            expect(result).toBe(true);
-          });
-
-          it("should contain correct contributer name", async () => {
-            const filePath = path.join(
-              process.cwd(),
-              `/test/templates/js-groth16/scripts/compile-circuit.sh`
-            );
-            const fileContent = await fsExtra.readFile(filePath);
-            const result = fileContent.toString().includes('--name="Alice"');
-            expect(result).toBe(true);
-          });
-
-          it("should contain correct entropy string", async () => {
-            const filePath = path.join(
-              process.cwd(),
-              `/test/templates/js-groth16/scripts/compile-circuit.sh`
-            );
-            const fileContent = await fsExtra.readFile(filePath);
-            const result = fileContent
-              .toString()
-              .includes(`-e="cafe's mayfair biscuit"`);
             expect(result).toBe(true);
           });
         });
