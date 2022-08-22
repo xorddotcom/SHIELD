@@ -4,22 +4,14 @@ import fsExtra from "fs-extra";
 import { spawn } from "child_process";
 import ora from "ora";
 import { printNameValidationError } from "../../../utils/error";
-import {
-  getEmptyDir,
-  updateCopyProjectName,
-  updateCompileCircuit,
-} from "../../../utils/utils";
+import { getEmptyDir, updateCopyProjectName } from "../../../utils/utils";
 import { getPackageRoot } from "../../../utils/packageInfo";
-
 const { prompt } = Enquirer;
-
 export const init = async () => {
   try {
     let projectName = "";
     let projectPath = "";
-    let projectLanguage = "";
-    let proofSystem = "";
-    let contributionName = "";
+    let type = "";
     await prompt([
       {
         type: "input",
@@ -30,7 +22,7 @@ export const init = async () => {
           value = value.trim();
           if (
             value &&
-            /^[^\s^\x00-\x1f\\?*:"";<>|\/.][^\x00-\x1f\\?*:"";<>|\/]*[^\s^\x00-\x1f\\?*:"";<>|\/.]+$/.test(
+            /^[^\s^\x00-\x1f\\?:"";<>|\/.][^\x00-\x1f\\?:"";<>|\/][^\s^\x00-\x1f\\?:"";<>|\/.]+$/.test(
               value
             )
           ) {
@@ -45,12 +37,45 @@ export const init = async () => {
       },
       {
         type: "select",
-        name: "language",
-        message: "Please select the language for project.",
-        choices: ["Javascript", "Typescript"],
-        result: async (value): Promise<string> => {
-          projectLanguage = value.toLowerCase();
-          return projectLanguage;
+        name: "projectType",
+        message: "What do you want to do?.",
+        choices: [
+          {
+            name: "Javascript",
+            message: "Create a Javascript project?",
+            value: "type",
+          },
+          {
+            name: "Typescript",
+            message: "Create a Typescript project?",
+            value: "type",
+          },
+          {
+            name: "Empty",
+            message: "Create an empty shield.config.js?",
+            value: "type",
+          },
+          {
+            name: "Quit",
+            message: "Quit",
+            value: "type",
+          },
+        ],
+        result: async (value) => {
+          type = value;
+          if (type === "Quit") {
+            process.exit(1);
+          } else if (type === "Empty") {
+            const src = `${getPackageRoot()}/template/config`;
+            const dest = `${process.cwd()}/${projectName}`;
+            projectPath = dest;
+            await fsExtra.copy(src, dest);
+            console.log(
+              chalk.greenBright("Successfully generated the config file.")
+            );
+            process.exit(1);
+          }
+          return value;
         },
       },
       {
@@ -59,48 +84,13 @@ export const init = async () => {
         message: "Please select the proof system for project.",
         choices: ["Groth16", "Plonk"],
         result: async (value) => {
-          proofSystem = value;
-          const src = `${getPackageRoot()}/template/${projectLanguage}/${value.toLowerCase()}`;
+          const src = `${getPackageRoot()}/template/${type.toLowerCase()}/${value.toLowerCase()}`;
           const dest = `${process.cwd()}/${projectName}`;
           projectPath = dest;
-          if (value === "Plonk") {
-            await fsExtra.copy(src, dest);
-            await updateCopyProjectName(projectName, projectPath);
-            console.log(chalk.greenBright("Successfully generated the code."));
-          }
+          await fsExtra.copy(src, dest);
+          await updateCopyProjectName(projectName, projectPath);
+          console.log(chalk.greenBright("Successfully generated the code."));
           return dest;
-        },
-      },
-      {
-        type: "input",
-        name: "contributerName",
-        message: "Please enter the contribution name for groth16 setup?",
-        initial: "1st Contributor Name",
-        skip: () => proofSystem === "Plonk",
-        onSubmit: async (name, value): Promise<boolean> => {
-          if (proofSystem === "Groth16") {
-            contributionName = value;
-          }
-          return true;
-        },
-      },
-      {
-        type: "input",
-        name: "entropy",
-        message: "Please enter the entropy for groth16 setup?",
-        initial: "random text",
-        skip: () => proofSystem === "Plonk",
-        onSubmit: async (name, value): Promise<boolean> => {
-          if (proofSystem === "Groth16") {
-            const src = `${getPackageRoot()}/template/${projectLanguage}/groth16`;
-            const dest = `${process.cwd()}/${projectName}`;
-            await fsExtra.copy(src, dest);
-            await updateCompileCircuit(dest, contributionName, value);
-            await updateCopyProjectName(projectName, dest);
-            console.log("");
-            console.log(chalk.greenBright("Successfully generated the code."));
-          }
-          return true;
         },
       },
       {

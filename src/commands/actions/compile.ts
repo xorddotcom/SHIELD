@@ -3,6 +3,7 @@
 import chalk from "chalk";
 import { spawn } from "child_process";
 import { prompt } from "enquirer";
+import ora from "ora";
 import { getPackageRoot } from "../../../utils/packageInfo";
 import { bumpSolidityVersion } from "../../../utils/utils";
 
@@ -114,14 +115,10 @@ export const compile = async () => {
       },
     };
 
-    console.log("final config --", finalConfig);
-    console.log("take input --->", finalConfig.circom.circuits);
-
+    let contributerName = "";
+    let randomEntropy = "";
     for (let i = 0; i < finalConfig.circom.circuits.length; i++) {
       if (finalConfig.circom.circuits[i].protocol === "groth16") {
-        console.log("take input --->", finalConfig.circom.circuits[i].protocol);
-        let contributerName = "";
-        let randomEntropy = "";
         await prompt([
           {
             type: "input",
@@ -146,29 +143,38 @@ export const compile = async () => {
             },
           },
         ]);
-
-        console.log({ contributerName, randomEntropy });
-
-        const executeCompile = spawn("bash", [
-          `${getPackageRoot()}/src/commands/scripts/compile.sh`,
-          finalConfig.circom.inputBasePath as string,
-          finalConfig.circom.outputBasePath as string,
-          finalConfig.circom.ptau,
-          finalConfig.circom.circuits[i].name,
-          finalConfig.circom.circuits[i].protocol as string,
-          finalConfig.circom.circuits[i].circuit as string,
-          finalConfig.circom.circuits[i].zkey as string,
-        ]);
-        executeCompile.stdout.on("data", (data) =>
-          console.log(data.toString())
-        );
-        executeCompile.stderr.on("data", (data) =>
-          console.log(data.toString())
-        );
-        executeCompile.stdout.once("close", () => {
-          bumpSolidityVersion(finalConfig.circom.circuits[i].name);
-        });
       }
+
+      const spinner = ora(
+        chalk.greenBright(`Compiling ${finalConfig.circom.circuits[i].name}`)
+      ).start();
+
+      const executeCompile = spawn("bash", [
+        `${getPackageRoot()}/src/commands/scripts/compile.sh`,
+        finalConfig.circom.inputBasePath as string,
+        finalConfig.circom.outputBasePath as string,
+        finalConfig.circom.ptau,
+        finalConfig.circom.circuits[i].name,
+        finalConfig.circom.circuits[i].protocol as string,
+        finalConfig.circom.circuits[i].circuit as string,
+        finalConfig.circom.circuits[i].zkey as string,
+        contributerName,
+        randomEntropy,
+      ]);
+
+      executeCompile.stdout.on("data", (data) => console.log(data.toString()));
+      executeCompile.stderr.on("data", (data) => console.log(data.toString()));
+      executeCompile.stdout.once("close", () => {
+        bumpSolidityVersion(
+          finalConfig.circom.circuits[i].name,
+          finalConfig.circom.circuits[i].protocol as string
+        );
+        spinner.succeed(
+          chalk.greenBright(
+            `${finalConfig.circom.circuits[i].name} succesfully compiled.`
+          )
+        );
+      });
     }
   } catch (e: any) {
     console.log(e.message);
