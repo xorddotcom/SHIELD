@@ -68,27 +68,41 @@ export const updateCopyProjectName = async (
   }
 };
 
-export const updateCompileCircuit = async (
-  projectPath: string,
-  contributionName: string,
-  entropy: string
+export const createInterface = async (
+  CIRCUIT_NAME: string,
+  protocol: string,
+  content: string
 ) => {
-  try {
-    const filePath = path.join(projectPath, `/scripts/compile-circuit.sh`);
-    let fileContent: Buffer | string = await fsExtra.readFile(filePath);
+  const tmpDir = path.join(process.cwd(), `/contracts/interfaces`);
+  await fsExtra.ensureDir(tmpDir);
 
-    fileContent = fileContent
-      .toString()
-      .replace("1st Contributor Name", contributionName);
+  fsExtra.createFileSync(`./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`);
 
-    fileContent = fileContent.toString().replace("random text", entropy);
+  let inputVariable = "";
+  let interfaceBumped = "";
+  if (protocol === "groth16") {
+    inputVariable = content.split("uint[2] memory c,")[1].split(")")[0].trim();
 
-    const res = await fsExtra.writeFile(filePath, fileContent);
-    return res;
-  } catch (e) {
-    console.log(e);
-    return null;
+    interfaceBumped = groth16InterfaceContent.replace(
+      "uint256[] memory input",
+      inputVariable
+    );
+  } else {
+    inputVariable = content
+      .split("bytes memory proof,")[1]
+      .split(")")[0]
+      .trim();
+
+    interfaceBumped = plonkInterfaceContent.replace(
+      "uint256[] memory pubSignals",
+      inputVariable
+    );
   }
+
+  fsExtra.writeFileSync(
+    `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`,
+    interfaceBumped
+  );
 };
 
 export const bumpSolidityVersion = async (
@@ -105,50 +119,27 @@ export const bumpSolidityVersion = async (
       }
     );
 
-    const tmpDir = path.join(process.cwd(), `/contracts/interfaces`);
-    await fsExtra.ensureDir(tmpDir);
-
-    fsExtra.createFileSync(
-      `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`
-    );
-
-    let inputVariable = "";
-    let interfaceBumped = "";
-    if (protocol === "groth16") {
-      inputVariable = content
-        .split("uint[2] memory c,")[1]
-        .split(")")[0]
-        .trim();
-
-      interfaceBumped = groth16InterfaceContent.replace(
-        "uint256[] memory input",
-        inputVariable
-      );
-    } else {
-      inputVariable = content
-        .split("bytes memory proof,")[1]
-        .split(")")[0]
-        .trim();
-
-      interfaceBumped = plonkInterfaceContent.replace(
-        "uint256[] memory pubSignals",
-        inputVariable
-      );
-    }
+    createInterface(CIRCUIT_NAME, protocol, content);
 
     const bumped = content.replace(solidityRegex, "pragma solidity ^0.8.0");
-    const bumpedContractName = bumped.replace(
-      "contract Verifier",
-      `contract ${CIRCUIT_NAME}Verifier`
-    );
+
+    let bumpedContractName = "";
+
+    if (protocol === "groth16") {
+      bumpedContractName = bumped.replace(
+        "contract Verifier",
+        `contract ${CIRCUIT_NAME}Verifier`
+      );
+    } else {
+      bumpedContractName = bumped.replace(
+        "contract PlonkVerifier",
+        `contract ${CIRCUIT_NAME}Verifier`
+      );
+    }
 
     fsExtra.writeFileSync(
       `./contracts/${CIRCUIT_NAME}_Verifier.sol`,
       bumpedContractName
-    );
-    fsExtra.writeFileSync(
-      `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`,
-      interfaceBumped
     );
   } catch (e) {
     throw e;

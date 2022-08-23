@@ -11,6 +11,14 @@ enum Protocol {
   GROTH16 = "groth16",
   PLONK = "plonk",
 }
+
+interface Contributions {
+  [key: string]: {
+    contributerName: string;
+    randomEntropy: string;
+  };
+}
+
 interface ICircuits {
   name: string;
   protocol?: Protocol;
@@ -29,6 +37,7 @@ interface IUserConfig {
     circuits: ICircuits[];
   };
 }
+
 export const compile = async () => {
   try {
     let userConfig: IUserConfig;
@@ -115,39 +124,45 @@ export const compile = async () => {
       },
     };
 
-    let contributerName = "";
-    let randomEntropy = "";
+    const contributions: Contributions = {};
     for (let i = 0; i < finalConfig.circom.circuits.length; i++) {
       if (finalConfig.circom.circuits[i].protocol === "groth16") {
         await prompt([
           {
             type: "input",
             name: "contributerName",
-            message: "Please enter the contribution name for groth16 setup?",
+            message: `Please enter the contribution of ${finalConfig.circom.circuits[i].name} circuit for groth16 setup?`,
             initial: "1st Contributor Name",
-            skip: () => finalConfig.circom.circuits[i].protocol === "plonk",
             result: async (value): Promise<string> => {
-              contributerName = value.toLowerCase();
-              return contributerName;
+              contributions[`${finalConfig.circom.circuits[i].name}`] = {
+                contributerName: value.toLowerCase(),
+                randomEntropy: "random text",
+              };
+              return value.toLowerCase();
             },
           },
           {
             type: "input",
             name: "entropy",
-            message: "Please enter the entropy for groth16 setup?",
+            message: `Please enter the entropy of ${finalConfig.circom.circuits[i].name} for groth16 setup?`,
             initial: "random text",
-            skip: () => finalConfig.circom.circuits[i].protocol === "plonk",
             result: async (value): Promise<string> => {
-              randomEntropy = value.toLowerCase();
-              return randomEntropy;
+              contributions[
+                `${finalConfig.circom.circuits[i].name}`
+              ].randomEntropy = value.toLowerCase();
+              return value.toLowerCase();
             },
           },
         ]);
       }
+    }
 
+    for (let i = 0; i < finalConfig.circom.circuits.length; i++) {
       const spinner = ora(
         chalk.greenBright(`Compiling ${finalConfig.circom.circuits[i].name}`)
       ).start();
+
+      const contribution = contributions[finalConfig.circom.circuits[i].name];
 
       const executeCompile = spawn("bash", [
         `${getPackageRoot()}/src/commands/scripts/compile.sh`,
@@ -158,8 +173,8 @@ export const compile = async () => {
         finalConfig.circom.circuits[i].protocol as string,
         finalConfig.circom.circuits[i].circuit as string,
         finalConfig.circom.circuits[i].zkey as string,
-        contributerName,
-        randomEntropy,
+        contribution ? contribution.contributerName : "",
+        contribution ? contribution.randomEntropy : "",
       ]);
 
       executeCompile.stdout.on("data", (data) => console.log(data.toString()));
