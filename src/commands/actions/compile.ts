@@ -38,9 +38,10 @@ interface IUserConfig {
   };
 }
 
-export const compile = async () => {
+export const compile = async (options: any) => {
   try {
     let userConfig: IUserConfig;
+    let circuits: ICircuits[];
     const defaultConfig: IUserConfig = {
       solidity: "^0.8.0",
       circom: {
@@ -53,6 +54,15 @@ export const compile = async () => {
 
     try {
       userConfig = require(`${process.cwd()}/shield.config.js`);
+      circuits = userConfig.circom.circuits;
+      if (options.circuit) {
+        circuits = circuits.filter((circuit) => {
+          return circuit.name === options.circuit;
+        });
+      }
+
+      console.log(circuits);
+
       if (!userConfig.circom) {
         console.log(
           chalk.red(
@@ -67,7 +77,7 @@ export const compile = async () => {
           )
         );
         process.exit(1);
-      } else if (!userConfig.circom.circuits.length) {
+      } else if (!circuits.length) {
         console.log(
           chalk.red(
             "please define the circuit details for compilation of circuits in file shield.config.js."
@@ -75,8 +85,8 @@ export const compile = async () => {
         );
         process.exit(1);
       } else {
-        for (let i = 0; i < userConfig.circom.circuits.length; i++) {
-          if (!userConfig.circom.circuits[i].name) {
+        for (let i = 0; i < circuits.length; i++) {
+          if (!circuits[i].name) {
             console.log(
               chalk.red(
                 "please define the circuit name for compilation of the circuit in file shield.config.js."
@@ -84,21 +94,17 @@ export const compile = async () => {
             );
             process.exit(1);
           }
-          if (!userConfig.circom.circuits[i].protocol) {
-            userConfig.circom.circuits[i].protocol = Protocol.GROTH16;
+          if (!circuits[i].protocol) {
+            circuits[i].protocol = Protocol.GROTH16;
           }
-          if (!userConfig.circom.circuits[i].wasm) {
-            userConfig.circom.circuits[i].wasm =
-              userConfig.circom.circuits[i].name;
+          if (!circuits[i].wasm) {
+            circuits[i].wasm = circuits[i].name;
           }
-          if (!userConfig.circom.circuits[i].zkey) {
-            userConfig.circom.circuits[i].zkey =
-              userConfig.circom.circuits[i].name;
+          if (!circuits[i].zkey) {
+            circuits[i].zkey = circuits[i].name;
           }
-          if (!userConfig.circom.circuits[i].circuit) {
-            userConfig.circom.circuits[
-              i
-            ].circuit = `${userConfig.circom.circuits[i].name}.circom`;
+          if (!circuits[i].circuit) {
+            circuits[i].circuit = `${circuits[i].name}.circom`;
           }
         }
       }
@@ -120,7 +126,7 @@ export const compile = async () => {
           ? userConfig.circom.outputBasePath
           : defaultConfig.circom.outputBasePath,
         ptau: userConfig.circom.ptau,
-        circuits: [...userConfig.circom.circuits],
+        circuits,
       },
     };
 

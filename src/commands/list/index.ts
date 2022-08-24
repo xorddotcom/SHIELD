@@ -3,7 +3,8 @@ import { compile, init } from "../actions";
 interface Icommands {
   name: string;
   description: string;
-  action(): any;
+  option?: string[];
+  action(options: any): any;
 }
 
 export const commands: Icommands[] = [
@@ -15,6 +16,7 @@ export const commands: Icommands[] = [
   {
     name: "compile",
     description: "compiles the circuits to verifer contracts",
+    option: ["-c, --circuit <value>", "specific circuit to compile"],
     action: compile,
   },
 ];
