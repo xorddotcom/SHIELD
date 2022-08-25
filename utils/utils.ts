@@ -4,33 +4,38 @@ import fsExtra from "fs-extra";
 
 export const indexDist = "node ../../dist/src/index.js";
 
-const groth16InterfaceContent = `
-    
+const groth16InterfaceContent = (
+  inputVariable: string,
+  CIRCUIT_NAME: string
+) => {
+  return `
     //  SPDX-License-Identifier: GPL-3.0-only
 
     pragma solidity ^0.8.0;
 
-     interface IVerifier {
+     interface I${CIRCUIT_NAME}Verifier {
          function verifyProof(
              uint256[2] calldata a,
              uint256[2][2] calldata b,
              uint256[2] calldata c,
-             uint256[] memory input
+             ${inputVariable}
          ) external view returns (bool);
     }`;
+};
 
-const plonkInterfaceContent = `
-
+const plonkInterfaceContent = (inputVariable: string, CIRCUIT_NAME: string) => {
+  return `
    //  SPDX-License-Identifier: GPL-3.0-only
 
    pragma solidity ^0.8.0;
 
-   interface IVerifier {
-      function verifyProof(bytes memory proof, uint256[] memory pubSignals)
+   interface I${CIRCUIT_NAME}Verifier {
+      function verifyProof(bytes memory proof, ${inputVariable})
          external
          view
          returns (bool);
   }`;
+};
 
 export const getEmptyDir = async (name: string) => {
   const tmpDir = path.join(process.cwd(), `/${name}`);
@@ -82,21 +87,14 @@ export const createInterface = async (
   let interfaceBumped = "";
   if (protocol === "groth16") {
     inputVariable = content.split("uint[2] memory c,")[1].split(")")[0].trim();
-
-    interfaceBumped = groth16InterfaceContent.replace(
-      "uint256[] memory input",
-      inputVariable
-    );
+    interfaceBumped = groth16InterfaceContent(inputVariable, CIRCUIT_NAME);
   } else {
     inputVariable = content
       .split("bytes memory proof,")[1]
       .split(")")[0]
       .trim();
 
-    interfaceBumped = plonkInterfaceContent.replace(
-      "uint256[] memory pubSignals",
-      inputVariable
-    );
+    interfaceBumped = plonkInterfaceContent(inputVariable, CIRCUIT_NAME);
   }
 
   fsExtra.writeFileSync(

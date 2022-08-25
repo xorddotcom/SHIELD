@@ -4,6 +4,7 @@ import chalk from "chalk";
 import { spawn } from "child_process";
 import { prompt } from "enquirer";
 import ora from "ora";
+import fsExtra from "fs-extra";
 import { getPackageRoot } from "../../../utils/packageInfo";
 import { bumpSolidityVersion } from "../../../utils/utils";
 
@@ -23,10 +24,7 @@ interface ICircuits {
   name: string;
   protocol?: Protocol;
   circuit?: string;
-  input?: string;
-  wasm?: string;
   zkey?: string;
-  beacon?: string;
 }
 interface IUserConfig {
   solidity?: string;
@@ -60,8 +58,6 @@ export const compile = async (options: any) => {
           return circuit.name === options.circuit;
         });
       }
-
-      console.log(circuits);
 
       if (!userConfig.circom) {
         console.log(
@@ -97,9 +93,6 @@ export const compile = async (options: any) => {
           if (!circuits[i].protocol) {
             circuits[i].protocol = Protocol.GROTH16;
           }
-          if (!circuits[i].wasm) {
-            circuits[i].wasm = circuits[i].name;
-          }
           if (!circuits[i].zkey) {
             circuits[i].zkey = circuits[i].name;
           }
@@ -132,6 +125,20 @@ export const compile = async (options: any) => {
 
     const contributions: Contributions = {};
     for (let i = 0; i < finalConfig.circom.circuits.length; i++) {
+      try {
+        fsExtra.readFileSync(
+          `${process.cwd()}/${finalConfig.circom.inputBasePath}${
+            circuits[i].name
+          }.circom`,
+          {
+            encoding: "utf-8",
+          }
+        );
+      } catch (e) {
+        console.log(chalk.red(e));
+        continue;
+      }
+
       if (finalConfig.circom.circuits[i].protocol === "groth16") {
         await prompt([
           {

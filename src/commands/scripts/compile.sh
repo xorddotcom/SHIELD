@@ -49,7 +49,7 @@ echo "Compiling ${CIRCUIT_NAME}..."
 
 circom "$INPUT_BASE_PATH$CIRCUIT_PATH" --r1cs --wasm --sym -o $OUTPUT_BASE_PATH$CIRCUIT_NAME
 
-# cd Multiplier
+# log circuit info
 snarkjs r1cs info "$OUTPUT_BASE_PATH$CIRCUIT_NAME/$CIRCUIT_NAME.r1cs"
 
 # # Start a new zkey and make a contribution
