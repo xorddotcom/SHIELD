@@ -9,9 +9,9 @@ import "hardhat/console.sol";
 /// @author Shield
 /// @notice Use this contract as only starter kit template
 contract Multiplier {
-    IVerifier public immutable verifier;
+    IMultiplierVerifier public immutable verifier;
 
-    constructor(IVerifier _verifier) payable {
+    constructor(IMultiplierVerifier _verifier) payable {
         verifier = _verifier;
     }
 

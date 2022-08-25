@@ -4,13 +4,13 @@ const { plonk } = require('snarkjs');
 const prove = async (witness) => {
   const wasmPath = path.join(
     __dirname,
-    "../circuits/build/Multiplier/Multiplier_js/Multiplier.wasm"
+    "../build/Multiplier/Multiplier_js/Multiplier.wasm"
   );
   const zkeyPath = path.join(
     __dirname,
-    "../circuits/build/Multiplier/circuit_final.zkey"
+    "../build/Multiplier/Multiplier.zkey"
   );
-  
+
   const { proof: _proof, publicSignals: _publicSignals } = await plonk.fullProve(
     witness,
     wasmPath,

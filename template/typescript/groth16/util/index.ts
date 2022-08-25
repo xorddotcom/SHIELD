@@ -1,7 +1,7 @@
-import { BigNumberish } from 'ethers';
-import path from 'path';
+import { BigNumberish } from "ethers";
+import path from "path";
 // @ts-ignore
-import { groth16 } from 'snarkjs';
+import { groth16 } from "snarkjs";
 
 export type Witness = {
   a: number;
@@ -23,12 +23,9 @@ export type Proof = {
 export const prove = async (witness: Witness): Promise<ProveProps> => {
   const wasmPath = path.join(
     __dirname,
-    '../circuits/build/Multiplier/Multiplier_js/Multiplier.wasm'
+    "../build/Multiplier/Multiplier_js/Multiplier.wasm"
   );
-  const zkeyPath = path.join(
-    __dirname,
-    '../circuits/build/Multiplier/circuit_final.zkey'
-  );
+  const zkeyPath = path.join(__dirname, "../build/Multiplier/Multiplier.zkey");
   const { proof, publicSignals } = await groth16.fullProve(
     witness,
     wasmPath,

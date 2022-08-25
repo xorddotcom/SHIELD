@@ -1,16 +1,12 @@
-const path = require('path');
-const { groth16 } = require('snarkjs');
-
+const path = require("path");
+const { groth16 } = require("snarkjs");
 
 const prove = async (witness) => {
   const wasmPath = path.join(
     __dirname,
-    "../circuits/build/Multiplier/Multiplier_js/Multiplier.wasm"
+    "../build/Multiplier/Multiplier_js/Multiplier.wasm"
   );
-  const zkeyPath = path.join(
-    __dirname,
-    "../circuits/build/Multiplier/circuit_final.zkey"
-  );
+  const zkeyPath = path.join(__dirname, "../build/Multiplier/Multiplier.zkey");
   const { proof, publicSignals } = await groth16.fullProve(
     witness,
     wasmPath,

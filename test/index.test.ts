@@ -88,17 +88,7 @@ describe("The Shield CLI", () => {
         it("should create groth16 typescript template", async () => {
           const response = await executeWithInput(
             "cd test/templates && shield init",
-            [
-              "ts-groth16",
-              KEYS.ENTER,
-              KEYS.DOWN,
-              KEYS.ENTER,
-              KEYS.ENTER,
-              "Alice",
-              KEYS.ENTER,
-              "cafe's mayfair biscuit",
-              KEYS.ENTER,
-            ]
+            ["ts-groth16", KEYS.ENTER, KEYS.DOWN, KEYS.ENTER, KEYS.ENTER]
           );
 
           sleep(5000);
@@ -116,6 +106,7 @@ describe("The Shield CLI", () => {
               "package.json\n" +
               "README.md\n" +
               "scripts\n" +
+              "shield.config.js\n" +
               "test\n" +
               "tsconfig.json\n" +
               "util\n"
@@ -154,6 +145,7 @@ describe("The Shield CLI", () => {
               "package.json\n" +
               "README.md\n" +
               "scripts\n" +
+              "shield.config.js\n" +
               "test\n" +
               "tsconfig.json\n" +
               "util\n"
@@ -168,16 +160,7 @@ describe("The Shield CLI", () => {
           it("should create groth16 javascript template", async () => {
             const response = await executeWithInput(
               "cd test/templates && shield init",
-              [
-                "js-groth16",
-                KEYS.ENTER,
-                KEYS.ENTER,
-                KEYS.ENTER,
-                "Alice",
-                KEYS.ENTER,
-                "cafe's mayfair biscuit",
-                KEYS.ENTER,
-              ]
+              ["js-groth16", KEYS.ENTER, KEYS.ENTER, KEYS.ENTER]
             );
 
             sleep(5000);
@@ -197,6 +180,7 @@ describe("The Shield CLI", () => {
                 "package.json\n" +
                 "README.md\n" +
                 "scripts\n" +
+                "shield.config.js\n" +
                 "test\n" +
                 "util\n"
             );
@@ -235,6 +219,7 @@ describe("The Shield CLI", () => {
                 "package.json\n" +
                 "README.md\n" +
                 "scripts\n" +
+                "shield.config.js\n" +
                 "test\n" +
                 "util\n"
             );
