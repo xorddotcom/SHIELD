@@ -154,78 +154,91 @@ describe("The Shield CLI", () => {
           expect(result).toBe(true);
         });
       });
+    });
 
-      describe("Javascript", () => {
-        describe("Js Groth16", () => {
-          it("should create groth16 javascript template", async () => {
-            const response = await executeWithInput(
-              "cd test/templates && shield init",
-              ["js-groth16", KEYS.ENTER, KEYS.ENTER, KEYS.ENTER]
-            );
+    describe("Javascript", () => {
+      describe("Js Groth16", () => {
+        it("should create groth16 javascript template", async () => {
+          const response = await executeWithInput(
+            "cd test/templates && shield init",
+            ["js-groth16", KEYS.ENTER, KEYS.ENTER, KEYS.ENTER]
+          );
 
-            sleep(5000);
+          sleep(5000);
 
-            const result = response.includes(
-              "Successfully generated the code."
-            );
+          const result = response.includes("Successfully generated the code.");
 
-            const listResponse = await executeWithInput(
-              "cd test/templates/js-groth16 && ls"
-            );
+          const listResponse = await executeWithInput(
+            "cd test/templates/js-groth16 && ls"
+          );
 
-            expect(listResponse).toBe(
-              "circuits\n" +
-                "contracts\n" +
-                "hardhat.config.js\n" +
-                "package.json\n" +
-                "README.md\n" +
-                "scripts\n" +
-                "shield.config.js\n" +
-                "test\n" +
-                "util\n"
-            );
+          expect(listResponse).toBe(
+            "circuits\n" +
+              "contracts\n" +
+              "hardhat.config.js\n" +
+              "package.json\n" +
+              "README.md\n" +
+              "scripts\n" +
+              "shield.config.js\n" +
+              "test\n" +
+              "util\n"
+          );
 
-            expect(result).toBe(true);
-          });
+          expect(result).toBe(true);
         });
-        describe("Js Plonk", () => {
-          it("should create plonk javascript template", async () => {
-            const response = await executeWithInput(
-              `cd test/templates && ${indexDist} init`,
-              [
-                "js-plonk",
-                KEYS.ENTER,
-                KEYS.ENTER,
-                KEYS.DOWN,
-                KEYS.ENTER,
-                KEYS.ESCAP,
-              ]
-            );
+      });
+      describe("Js Plonk", () => {
+        it("should create plonk javascript template", async () => {
+          const response = await executeWithInput(
+            `cd test/templates && ${indexDist} init`,
+            [
+              "js-plonk",
+              KEYS.ENTER,
+              KEYS.ENTER,
+              KEYS.DOWN,
+              KEYS.ENTER,
+              KEYS.ESCAP,
+            ]
+          );
 
-            sleep(5000);
+          sleep(5000);
 
-            const result = response.includes(
-              "Successfully generated the code."
-            );
+          const result = response.includes("Successfully generated the code.");
 
-            const listResponse = await executeWithInput(
-              "cd test/templates/js-plonk && ls"
-            );
+          const listResponse = await executeWithInput(
+            "cd test/templates/js-plonk && ls"
+          );
 
-            expect(listResponse).toBe(
-              "circuits\n" +
-                "contracts\n" +
-                "hardhat.config.js\n" +
-                "package.json\n" +
-                "README.md\n" +
-                "scripts\n" +
-                "shield.config.js\n" +
-                "test\n" +
-                "util\n"
-            );
+          expect(listResponse).toBe(
+            "circuits\n" +
+              "contracts\n" +
+              "hardhat.config.js\n" +
+              "package.json\n" +
+              "README.md\n" +
+              "scripts\n" +
+              "shield.config.js\n" +
+              "test\n" +
+              "util\n"
+          );
 
-            expect(result).toBe(true);
-          });
+          expect(result).toBe(true);
+        });
+      });
+    });
+
+    describe("Empty Config", () => {
+      describe("Js Groth16", () => {
+        it("should create groth16 javascript template", async () => {
+          const response = await executeWithInput(
+            "cd test/templates && shield init",
+            ["empty-config", KEYS.ENTER, KEYS.DOWN, KEYS.DOWN, KEYS.ENTER]
+          );
+
+          const result = response.includes(
+            "Successfully generated the config file"
+          );
+
+          expect(result).toBe(true);
         });
       });
     });

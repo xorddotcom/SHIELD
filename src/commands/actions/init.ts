@@ -6,6 +6,7 @@ import ora from "ora";
 import { printNameValidationError } from "../../../utils/error";
 import { getEmptyDir, updateCopyProjectName } from "../../../utils/utils";
 import { getPackageRoot } from "../../../utils/packageInfo";
+import { log } from "../../../utils/logger";
 const { prompt } = Enquirer;
 export const init = async () => {
   try {
@@ -70,9 +71,7 @@ export const init = async () => {
             const dest = `${process.cwd()}/${projectName}`;
             projectPath = dest;
             await fsExtra.copy(src, dest);
-            console.log(
-              chalk.greenBright("Successfully generated the config file.")
-            );
+            log("Successfully generated the config file.", "success");
             process.exit(1);
           }
           return value;
@@ -89,7 +88,7 @@ export const init = async () => {
           projectPath = dest;
           await fsExtra.copy(src, dest);
           await updateCopyProjectName(projectName, projectPath);
-          console.log(chalk.greenBright("Successfully generated the code."));
+          log("Successfully generated the code.", "success");
           return dest;
         },
       },
@@ -114,20 +113,19 @@ export const init = async () => {
           const args = val === "npm" ? ["install"] : [];
           const dependencies = spawn(command, args, { cwd: projectPath });
           dependencies.stdout.on("data", (data) => {
-            console.log(data.toString());
+            log(data.toString(), "info");
           });
           dependencies.stderr.once("data", () => {
             spinner.stopAndPersist();
           });
           dependencies.stderr.on("data", (data) => {
-            console.log(data.toString());
+            log(data.toString(), "info");
           });
           dependencies.stdout.once("close", () => {
             spinner.succeed(
               chalk.greenBright("Dependencies succesfully installed.")
             );
-            console.log("");
-            console.log(chalk.greenBright("Happy coding :)"));
+            log("\nHappy Coding :)", "success");
           });
           return "Happy coding :)";
         },
@@ -138,6 +136,6 @@ export const init = async () => {
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    console.log(chalk.red(errorMessage));
+    log(errorMessage, "error");
   }
 };

@@ -1,5 +1,6 @@
 import { exec, ExecException } from "child_process";
 import concat from "concat-stream";
+import { log } from "./logger";
 
 export interface Options {
   timeout?: number;
@@ -85,7 +86,7 @@ export const executeWithInput = (
       childProcess.stdin!.write(statments[0]);
       // Log debug I/O statements on tests
       if (env && env.DEBUG) {
-        console.log("input:", statments[0]);
+        log(`input: ${statments[0]}`, "info");
       }
       loop(statments.slice(1));
     }, timeout);
@@ -96,7 +97,7 @@ export const executeWithInput = (
     childProcess.stderr!.on("data", (data) => {
       // Log debug I/O statements on tests
       if (env && env.DEBUG) {
-        console.log("error:", data.toString());
+        log(`error: ${data.toString()}`, "error");
       }
     });
 
@@ -104,7 +105,7 @@ export const executeWithInput = (
     childProcess.stdout!.on("data", (data) => {
       // Log debug I/O statements on tests
       if (env && env.DEBUG) {
-        console.log("output:", data.toString());
+        log(`output: ${data.toString()}`, "info");
       }
     });
 

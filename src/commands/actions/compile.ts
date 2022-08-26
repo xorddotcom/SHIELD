@@ -7,6 +7,7 @@ import ora from "ora";
 import fsExtra from "fs-extra";
 import { getPackageRoot } from "../../../utils/packageInfo";
 import { bumpSolidityVersion } from "../../../utils/utils";
+import { log } from "../../../utils/logger";
 
 enum Protocol {
   GROTH16 = "groth16",
@@ -60,33 +61,29 @@ export const compile = async (options: any) => {
       }
 
       if (!userConfig.circom) {
-        console.log(
-          chalk.red(
-            "unable to locate circom user defined config in file shield.config.js."
-          )
+        log(
+          "unable to locate circom user defined config in file shield.config.js.",
+          "error"
         );
         process.exit(1);
       } else if (!userConfig.circom.ptau) {
-        console.log(
-          chalk.red(
-            "please define the ptau file name in file shield.config.js."
-          )
+        log(
+          "please define the ptau file name in file shield.config.js.",
+          "error"
         );
         process.exit(1);
       } else if (!circuits.length) {
-        console.log(
-          chalk.red(
-            "please define the circuit details for compilation of circuits in file shield.config.js."
-          )
+        log(
+          "please define the circuit details for compilation of circuits in file shield.config.js.",
+          "error"
         );
         process.exit(1);
       } else {
         for (let i = 0; i < circuits.length; i++) {
           if (!circuits[i].name) {
-            console.log(
-              chalk.red(
-                "please define the circuit name for compilation of the circuit in file shield.config.js."
-              )
+            log(
+              "please define the circuit name for compilation of the circuit in file shield.config.js.",
+              "error"
             );
             process.exit(1);
           }
@@ -102,8 +99,7 @@ export const compile = async (options: any) => {
         }
       }
     } catch (e) {
-      console.log(e);
-      console.log(chalk.red("unable to locate shield config file."));
+      log("unable to locate shield config file.", "error");
       process.exit(1);
     }
 
@@ -135,7 +131,12 @@ export const compile = async (options: any) => {
           }
         );
       } catch (e) {
-        console.log(chalk.red(e));
+        log(
+          `unable to read file ${process.cwd()}/${
+            finalConfig.circom.inputBasePath
+          }${circuits[i].name}.circom`,
+          "warning"
+        );
         continue;
       }
 
@@ -190,8 +191,8 @@ export const compile = async (options: any) => {
         contribution ? contribution.randomEntropy : "",
       ]);
 
-      executeCompile.stdout.on("data", (data) => console.log(data.toString()));
-      executeCompile.stderr.on("data", (data) => console.log(data.toString()));
+      executeCompile.stdout.on("data", (data) => log(data.toString(), "info"));
+      executeCompile.stderr.on("data", (data) => log(data.toString(), "info"));
       executeCompile.stdout.once("close", () => {
         bumpSolidityVersion(
           finalConfig.circom.circuits[i].name,
@@ -205,6 +206,6 @@ export const compile = async (options: any) => {
       });
     }
   } catch (e: any) {
-    console.log(e.message);
+    log(e.message, "error");
   }
 };

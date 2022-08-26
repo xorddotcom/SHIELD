@@ -1,6 +1,6 @@
-import chalk from "chalk";
 import path from "path";
 import fsExtra from "fs-extra";
+import { log } from "./logger";
 
 export const indexDist = "node ../../dist/src/index.js";
 
@@ -41,10 +41,9 @@ export const getEmptyDir = async (name: string) => {
   const tmpDir = path.join(process.cwd(), `/${name}`);
   const dir = await fsExtra.ensureDir(tmpDir);
   if (dir === undefined) {
-    console.log(
-      chalk.red(
-        `A folder named "${name}" already exist, delete or move it to somewhere else and try again!!`
-      )
+    log(
+      `A folder named "${name}" already exist, delete or move it to somewhere else and try again!!`,
+      "error"
     );
     process.exit(1);
   }
@@ -68,7 +67,10 @@ export const updateCopyProjectName = async (
     );
     return res;
   } catch (e) {
-    console.log(e);
+    log(
+      "unable to locate the package.json file or rewrite the project name",
+      "error"
+    );
     return null;
   }
 };

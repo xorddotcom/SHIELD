@@ -48,7 +48,6 @@ export function getShieldVersion() {
 
 export const getInputJson = async (input: string) => {
   const inputString = await fsExtra.readFile(input, "utf8");
-  console.log(inputString);
   try {
     return JSON.parse(inputString.toString().replace(/^\uFEFF/, ""));
   } catch (err: any) {
