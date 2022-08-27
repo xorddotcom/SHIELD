@@ -141,7 +141,7 @@ Now, you can use shield compile to compile the circuits and output demo_Verifier
 Currently, we are only providing the initialization and compiling feature in this CLI but we're working iteratively and working on other features as well that we have in our roadmap such as debugging with error stack trace.
 
 ## Contribution
-For making a contribution refer to [CONTRIBUTION.md](https://github.com/xorddotcom/SHIELD/CONTRIBUTION.md) file.
+For making a contribution refer to [CONTRIBUTION.md](https://github.com/xorddotcom/SHIELD/blob/main/CONTRIBUTION.md) file.
 
 ## License
 
