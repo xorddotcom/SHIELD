@@ -29,6 +29,8 @@
   "author": "Khuzama Shahid(@khuzama98), Abdul Qadir(@sleepyqadir)",
   "license": "MIT",
   "dependencies": {
+    "@sentry/integrations": "^7.11.1",
+    "@sentry/node": "^7.11.1",
     "chai": "^4.3.6",
     "chalk": "^4.1.2",
     "commander": "^9.4.0",
