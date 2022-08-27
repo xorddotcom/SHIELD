@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "./interfaces/IVerifier.sol";
+import "./interfaces/IMultiplierVerifier.sol";
 
 import "hardhat/console.sol";
 
 /// @title A multiplier contract to proof a * b = c
 /// @author Shield
 /// @notice Use this contract as only starter kit template
+
 contract Multiplier {
-    IVerifier public immutable verifier;
+    IMultiplierVerifier public immutable verifier;
 
     struct Proof {
         uint256[2] a;
@@ -17,7 +18,7 @@ contract Multiplier {
         uint256[2] c;
     }
 
-    constructor(IVerifier _verifier) payable {
+    constructor(IMultiplierVerifier _verifier) payable {
         verifier = _verifier;
     }
 
