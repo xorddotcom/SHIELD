@@ -22,7 +22,7 @@ In future versions we'll provide a script to setup the environment with a single
 Install shield globally with npm:
 
 ```bash
-$ npm install -g @shield/cli
+$ npm i -g @xorddotcom/shield
 ```
     
 ## Usage
@@ -70,6 +70,8 @@ Set up your project with the following minimal shield.config.js at the root.
 ```javascript
 
 module.exports = {
+  // (optional) solidity version for compiled contracts, defaults to `^0.8.0`
+  solidity: "^0.8.0",
   circom: {
     // (optional) Base path for files being read, defaults to `./circuits/`
     inputBasePath: "./circuits/",

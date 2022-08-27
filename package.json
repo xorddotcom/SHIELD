@@ -1,7 +1,7 @@
 {
-  "name": "@shield/cli",
+  "name": "@xorddotcom/shield",
   "version": "0.1.0",
-  "description": "",
+  "description": "p align=\"center\" > <img src=\"https://xord.notion.site/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fsecure.notion-static.com%2F283b98b7-fdae-4e5a-acaf-248242084e4a%2FICON.png?table=block&id=5306223c-a4f7-45d1-9f54-b9a5f4004cd6&spaceId=49976899-64a1-40fd-a3e6-c2ad82ad7aa1&width=250&userId=&cache=v2\" alt=\"shield\" width=\"200\" height=\"200\"> </p> Shield is a development framework for circom developers but we plan it to other languages such as CAIRO, SNARKYJS etc.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
