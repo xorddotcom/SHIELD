@@ -7,7 +7,7 @@
 const hre = require("hardhat");
 
 async function main() {
-  const Verifier = await ethers.getContractFactory("Verifier");
+  const Verifier = await ethers.getContractFactory("MultiplierVerifier");
   const verifier = await Verifier.deploy();
 
   console.log("Verifier deployed to:", verifier.address);
