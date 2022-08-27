@@ -18,6 +18,13 @@ echo $OUTPUT_BASE_NAME
 echo "${INPUT_BASE_PATH}${CIRCUIT_PATH}"
 # cd INPUT_BASE_PATH +
 
+if [ -d "./contracts" ]; then
+  echo "contracts dir already exists..."
+else
+  echo "creating circuits dir..."
+  mkdir "./contracts"
+fi
+
 if [ -d $OUTPUT_BASE_PATH ]; then
   echo "${OUTPUT_BASE_NAME} dir already exists..."
   cd $OUTPUT_BASE_PATH
