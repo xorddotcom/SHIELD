@@ -21,7 +21,7 @@ describe("Multiplier", function () {
   // and reset Hardhat Network to that snapshopt in every test.
   async function deployMultiplierFixture() {
 
-    const Verifier = await ethers.getContractFactory("PlonkVerifier");
+    const Verifier = await ethers.getContractFactory("MultiplierVerifier");
     const verifier = await Verifier.deploy();
 
     const witness = {

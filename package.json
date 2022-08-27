@@ -1,31 +1,62 @@
 {
-  "name": "@shield/cli",
-  "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "name": "@xorddotcom/shield",
+  "version": "0.2.2",
+  "description": "p align=\"center\" > <img src=\"https://xord.notion.site/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fsecure.notion-static.com%2F283b98b7-fdae-4e5a-acaf-248242084e4a%2FICON.png?table=block&id=5306223c-a4f7-45d1-9f54-b9a5f4004cd6&spaceId=49976899-64a1-40fd-a3e6-c2ad82ad7aa1&width=250&userId=&cache=v2\" alt=\"shield\" width=\"200\" height=\"200\"> </p> Shield is a development framework for circom developers but we plan it to other languages such as CAIRO, SNARKYJS etc.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "start": "node --experimental-specifier-resolution=node index.js",
-    "test": "mocha --timeout=10000"
+    "start": "node dist/src/index.js",
+    "build": "npm run clean && tsc",
+    "build:dev": "npm run build && npm run setup",
+    "clean": "rm -rf dist/",
+    "setup": "npm install -g",
+    "lint": "eslint 'src/**/*.ts' 'utils/**/*.ts' 'test/**/*.ts' --fix",
+    "test": "npm run build && npm run setup && jest --detectOpenHandles"
   },
   "bin": {
-    "shield": "./index.js"
+    "shield": "dist/src/index.js"
   },
-  "engines": {
-    "node": "^16"
-  },
-  "type": "module",
-  "keywords": ["shield","cli","circom","circomlib","snarkjs"],
+  "keywords": [
+    "shield",
+    "cli",
+    "circom",
+    "circomlib",
+    "snarkjs",
+    "zero-knowledge",
+    "web3"
+  ],
   "author": "Khuzama Shahid(@khuzama98), Abdul Qadir(@sleepyqadir)",
   "license": "MIT",
   "dependencies": {
+    "@sentry/integrations": "^7.11.1",
+    "@sentry/node": "^7.11.1",
     "chai": "^4.3.6",
-    "chalk": "^5.0.1",
+    "chalk": "^4.1.2",
     "commander": "^9.4.0",
     "concat-stream": "^2.0.0",
     "enquirer": "^2.3.6",
-    "find-up": "^6.3.0",
+    "find-up": "^4.1.0",
     "fs-extra": "^10.1.0",
-    "mocha": "^10.0.0",
-    "ora": "^6.1.2"
+    "locate-path": "^7.0.0",
+    "ora": "^5.4.1",
+    "typescript": "^4.7.4"
+  },
+  "devDependencies": {
+    "@types/concat-stream": "^2.0.0",
+    "@types/fs-extra": "^9.0.13",
+    "@types/jest": "^28.1.6",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.6.3",
+    "@typescript-eslint/eslint-plugin": "^5.31.0",
+    "@typescript-eslint/parser": "^5.31.0",
+    "eslint": "^8.21.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.1",
+    "jest": "^28.1.3",
+    "prettier": "^2.7.1",
+    "ts-jest": "^28.0.7",
+    "ts-node": "^10.9.1"
   }
 }
