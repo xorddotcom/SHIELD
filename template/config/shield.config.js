@@ -1,4 +1,6 @@
 module.exports = {
+  // (optional) solidity version for compiled contracts, defaults to `^0.8.0`
+  solidity: "^0.8.0",
   circom: {
     // (optional) Base path for files being read, defaults to `./circuits/`
     inputBasePath: "./circuits/",

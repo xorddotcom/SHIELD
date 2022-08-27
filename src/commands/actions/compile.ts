@@ -195,6 +195,7 @@ export const compile = async (options: any) => {
       executeCompile.stderr.on("data", (data) => log(data.toString(), "info"));
       executeCompile.stdout.once("close", () => {
         bumpSolidityVersion(
+          finalConfig.solidity,
           finalConfig.circom.circuits[i].name,
           finalConfig.circom.circuits[i].protocol as string
         );

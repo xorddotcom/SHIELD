@@ -13,17 +13,8 @@ ENTROPY=$9
 OUTPUT_BASE_NAME=${OUTPUT_BASE_PATH//./}
 OUTPUT_BASE_NAME=${OUTPUT_BASE_NAME//\//}
 
-echo $ROOT_PATH
-echo $OUTPUT_BASE_NAME
-echo "${INPUT_BASE_PATH}${CIRCUIT_PATH}"
-# cd INPUT_BASE_PATH +
 
-if [ -d "./contracts" ]; then
-  echo "contracts dir already exists..."
-else
-  echo "creating circuits dir..."
-  mkdir "./contracts"
-fi
+
 
 if [ -d $OUTPUT_BASE_PATH ]; then
   echo "${OUTPUT_BASE_NAME} dir already exists..."
@@ -68,6 +59,13 @@ else
   snarkjs $PROTOCOL setup "$OUTPUT_BASE_PATH$CIRCUIT_NAME/$CIRCUIT_NAME.r1cs" "${INPUT_BASE_PATH}${PTAU}" "${OUTPUT_BASE_PATH}${CIRCUIT_NAME}/${ZKEY}"
 fi
 snarkjs zkey export verificationkey "${OUTPUT_BASE_PATH}${CIRCUIT_NAME}/${ZKEY}" "${OUTPUT_BASE_PATH}${CIRCUIT_NAME}/verification_key.json"
+
+if [ -d "./contracts" ]; then
+  echo "contracts dir already exists..."
+else
+  echo "creating contracts dir..."
+  mkdir "./contracts"
+fi
 
 # # # generate solidity contract
 snarkjs zkey export solidityverifier "${OUTPUT_BASE_PATH}${CIRCUIT_NAME}/${ZKEY}" "./contracts/${CIRCUIT_NAME}_Verifier.sol"

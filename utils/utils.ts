@@ -6,12 +6,13 @@ export const indexDist = "node ../../dist/src/index.js";
 
 const groth16InterfaceContent = (
   inputVariable: string,
-  CIRCUIT_NAME: string
+  CIRCUIT_NAME: string,
+  SOLIDITY_VERSION: string
 ) => {
   return `
     //  SPDX-License-Identifier: GPL-3.0-only
 
-    pragma solidity ^0.8.0;
+    pragma solidity ${SOLIDITY_VERSION};
 
      interface I${CIRCUIT_NAME}Verifier {
          function verifyProof(
@@ -23,11 +24,11 @@ const groth16InterfaceContent = (
     }`;
 };
 
-const plonkInterfaceContent = (inputVariable: string, CIRCUIT_NAME: string) => {
+const plonkInterfaceContent = (inputVariable: string, CIRCUIT_NAME: string, SOLIDITY_VERSION: string) => {
   return `
    //  SPDX-License-Identifier: GPL-3.0-only
 
-   pragma solidity ^0.8.0;
+   pragma solidity ${SOLIDITY_VERSION};
 
    interface I${CIRCUIT_NAME}Verifier {
       function verifyProof(bytes memory proof, ${inputVariable})
@@ -78,7 +79,8 @@ export const updateCopyProjectName = async (
 export const createInterface = async (
   CIRCUIT_NAME: string,
   protocol: string,
-  content: string
+  content: string,
+  SOLIDITY_VERSION: string
 ) => {
   const tmpDir = path.join(process.cwd(), `/contracts/interfaces`);
   await fsExtra.ensureDir(tmpDir);
@@ -89,14 +91,14 @@ export const createInterface = async (
   let interfaceBumped = "";
   if (protocol === "groth16") {
     inputVariable = content.split("uint[2] memory c,")[1].split(")")[0].trim();
-    interfaceBumped = groth16InterfaceContent(inputVariable, CIRCUIT_NAME);
+    interfaceBumped = groth16InterfaceContent(inputVariable, CIRCUIT_NAME, SOLIDITY_VERSION);
   } else {
     inputVariable = content
       .split("bytes memory proof,")[1]
       .split(")")[0]
       .trim();
 
-    interfaceBumped = plonkInterfaceContent(inputVariable, CIRCUIT_NAME);
+    interfaceBumped = plonkInterfaceContent(inputVariable, CIRCUIT_NAME, SOLIDITY_VERSION);
   }
 
   fsExtra.writeFileSync(
@@ -106,8 +108,9 @@ export const createInterface = async (
 };
 
 export const bumpSolidityVersion = async (
+  SOLIDITY_VERSION: string,
   CIRCUIT_NAME: string,
-  protocol: string
+  PROTOCOL: string
 ) => {
   try {
     const solidityRegex = /pragma solidity \^\d+\.\d+\.\d+/;
@@ -119,13 +122,13 @@ export const bumpSolidityVersion = async (
       }
     );
 
-    createInterface(CIRCUIT_NAME, protocol, content);
+    createInterface(CIRCUIT_NAME, PROTOCOL, content, SOLIDITY_VERSION);
 
-    const bumped = content.replace(solidityRegex, "pragma solidity ^0.8.0");
+    const bumped = content.replace(solidityRegex, "pragma solidity " + SOLIDITY_VERSION);
 
     let bumpedContractName = "";
 
-    if (protocol === "groth16") {
+    if (PROTOCOL === "groth16") {
       bumpedContractName = bumped.replace(
         "contract Verifier",
         `contract ${CIRCUIT_NAME}Verifier`
