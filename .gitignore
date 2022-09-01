@@ -2,8 +2,6 @@
 /.idea
 *.tsbuildinfo
 
-*-lock.json
-.lock
 
 .npmignore
 # Logs
