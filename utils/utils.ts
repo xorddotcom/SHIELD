@@ -1,7 +1,7 @@
 import path from "path";
 import fsExtra from "fs-extra";
 import { log } from "./logger";
-
+import fs from "fs";
 export const indexDist = "node ../../dist/src/index.js";
 
 const groth16InterfaceContent = (
@@ -24,7 +24,11 @@ const groth16InterfaceContent = (
     }`;
 };
 
-const plonkInterfaceContent = (inputVariable: string, CIRCUIT_NAME: string, SOLIDITY_VERSION: string) => {
+const plonkInterfaceContent = (
+  inputVariable: string,
+  CIRCUIT_NAME: string,
+  SOLIDITY_VERSION: string
+) => {
   return `
    //  SPDX-License-Identifier: GPL-3.0-only
 
@@ -38,7 +42,21 @@ const plonkInterfaceContent = (inputVariable: string, CIRCUIT_NAME: string, SOLI
   }`;
 };
 
-export const getEmptyDir = async (name: string) => {
+export const getEmptyDirByPath = async (path: string, exitCode: number) => {
+  const dir = await fsExtra.ensureDir(path);
+  if (dir === undefined) {
+    log(`"${path}" dir already exist`, "info");
+    if (exitCode === 1) {
+      process.exit(1);
+    }
+    return
+  }
+  log(`✓ "${path}" dir created`, "success");
+  await fsExtra.emptyDir(path);
+  return path;
+};
+
+export const getEmptyDir = async (name: string, exitCode: number) => {
   const tmpDir = path.join(process.cwd(), `/${name}`);
   const dir = await fsExtra.ensureDir(tmpDir);
   if (dir === undefined) {
@@ -46,10 +64,19 @@ export const getEmptyDir = async (name: string) => {
       `A folder named "${name}" already exist, delete or move it to somewhere else and try again!!`,
       "error"
     );
-    process.exit(1);
+    if (exitCode === 1) {
+      process.exit(1);
+    }
   }
   await fsExtra.emptyDir(tmpDir);
   return tmpDir;
+};
+
+export const fileExists = async (file: fsExtra.PathLike) => {
+  return fs.promises
+    .access(file, fs.constants.F_OK)
+    .then(() => true)
+    .catch(() => false);
 };
 
 export const updateCopyProjectName = async (
@@ -91,14 +118,22 @@ export const createInterface = async (
   let interfaceBumped = "";
   if (protocol === "groth16") {
     inputVariable = content.split("uint[2] memory c,")[1].split(")")[0].trim();
-    interfaceBumped = groth16InterfaceContent(inputVariable, CIRCUIT_NAME, SOLIDITY_VERSION);
+    interfaceBumped = groth16InterfaceContent(
+      inputVariable,
+      CIRCUIT_NAME,
+      SOLIDITY_VERSION
+    );
   } else {
     inputVariable = content
       .split("bytes memory proof,")[1]
       .split(")")[0]
       .trim();
 
-    interfaceBumped = plonkInterfaceContent(inputVariable, CIRCUIT_NAME, SOLIDITY_VERSION);
+    interfaceBumped = plonkInterfaceContent(
+      inputVariable,
+      CIRCUIT_NAME,
+      SOLIDITY_VERSION
+    );
   }
 
   fsExtra.writeFileSync(
@@ -124,7 +159,10 @@ export const bumpSolidityVersion = async (
 
     createInterface(CIRCUIT_NAME, PROTOCOL, content, SOLIDITY_VERSION);
 
-    const bumped = content.replace(solidityRegex, "pragma solidity " + SOLIDITY_VERSION);
+    const bumped = content.replace(
+      solidityRegex,
+      "pragma solidity " + SOLIDITY_VERSION
+    );
 
     let bumpedContractName = "";
 
