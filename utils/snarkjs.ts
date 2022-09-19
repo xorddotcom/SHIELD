@@ -1,5 +1,3 @@
-
-const { zKey, plonk } = require("snarkjs");
 // @ts-ignore
 import bfj from "bfj";
 // @ts-ignore
@@ -7,9 +5,10 @@ import { utils } from "ffjavascript";
 import fs from "fs";
 import path from "path";
 import shelljs from "shelljs";
-import { log } from "./logger";
-import { fileExists } from "./utils";
 import fsExtra from "fs-extra";
+import { fileExists } from "./utils";
+import { log } from "./logger";
+const { zKey, plonk } = require("snarkjs");
 const { stringifyBigInts } = utils;
 
 export const WrappedSnarkJs = {

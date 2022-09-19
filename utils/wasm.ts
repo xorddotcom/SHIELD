@@ -12,20 +12,17 @@ export const initFS = () => {
 
   const memfs = createFsFromVolume(vol);
 
-  ufs
-    .use(nodefs)
-    .use(memfs as unknown as typeof nodefs);
+  ufs.use(nodefs).use(memfs as unknown as typeof nodefs);
 
-  let bufferSize = 10 * 1024 * 1024;
-  let writeBuffer = new Uint8Array(bufferSize);
+  const bufferSize = 10 * 1024 * 1024;
+  const writeBuffer = new Uint8Array(bufferSize);
   let writeBufferFd = -1;
   let writeBufferOffset = 0;
   let writeBufferPos = 0;
 
   const wasmFs = {
     ...ufs,
-    // @ts-ignore
-    writeSync(fd, buf, offset, len, pos) {
+    writeSync(fd: any, buf: any, offset: any, len: any, pos: any) {
       if (
         writeBufferFd === fd &&
         writeBufferOffset + len < bufferSize &&
@@ -53,8 +50,7 @@ export const initFS = () => {
       }
       return len;
     },
-    // @ts-ignore
-    closeSync(fd) {
+    closeSync(fd: any) {
       if (writeBufferFd >= 0) {
         ufs.writeSync(
           writeBufferFd,
@@ -72,7 +68,7 @@ export const initFS = () => {
       }
     },
     getStdOut() {
-      let promise = new Promise((resolve) => {
+      const promise = new Promise((resolve) => {
         resolve(ufs.readFileSync("/dev/stdout", "utf8"));
       });
       return promise;
@@ -94,14 +90,14 @@ export const initFS = () => {
           // This is a little fragile, but we assume the wasmer-js
           // terminal character is a newline by itself
           if (stdout.endsWith("\n")) {
-            const msg = stdout.trim();
+            stdout.trim();
             stdout = "";
           }
           return data.length;
         } else {
           stdout += new TextDecoder().decode(data);
           if (stdout.endsWith("\n")) {
-            const msg = stdout.trim();
+            stdout.trim();
             stdout = "";
           }
           return data.byteLength;
@@ -109,7 +105,7 @@ export const initFS = () => {
       }
 
       // If writing to stderr, we hijack and throw an error
-      if (fd == 2) {
+      if (fd === 2) {
         if (typeof data === "string") {
           stderr += data;
           // This is a little fragile, but we assume that circom2

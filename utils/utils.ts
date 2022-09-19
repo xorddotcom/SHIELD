@@ -1,7 +1,7 @@
 import path from "path";
 import fsExtra from "fs-extra";
-import { log } from "./logger";
 import fs from "fs";
+import { log } from "./logger";
 export const indexDist = "node ../../dist/src/index.js";
 
 const groth16InterfaceContent = (
@@ -175,7 +175,7 @@ export const bumpSolidityVersion = async (
 
     const bumped = content.replace(
       solidityRegex,
-      "pragma solidity " + SOLIDITY_VERSION
+      `pragma solidity ${SOLIDITY_VERSION}`
     );
 
     let bumpedContractName = "";

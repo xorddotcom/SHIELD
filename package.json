@@ -7,12 +7,12 @@
   "scripts": {
     "start": "node dist/src/index.js",
     "build": "npm run clean && tsc",
-    "build:dev": "npm run build && npm run setup",
+    "build:dev": "npm run build && sudo rm -f /usr/local/bin/shield && sudo rm -rf /home/sleepyqadir/.nvm/versions/node/v16.17.0/bin/shield && npm run setup",
     "clean": "rm -rf dist/",
     "commit": "git-cz",
     "setup": "npm install -g",
     "lint": "eslint 'src/**/*.ts' 'utils/**/*.ts' 'test/**/*.ts' --fix",
-    "test": "npm run build && npm run setup && jest --detectOpenHandles",
+    "test": "npm run build:dev && jest --detectOpenHandles",
     "semantic-release": "semantic-release --branches main"
   },
   "bin": {

@@ -56,8 +56,8 @@ export const executeWithInput = (
     inputs = [];
   }
   const { env, timeout, maxTimeout } = opts;
-  const childProcess = runCommand(command, () => {});
-  // @ts-ignore
+  const childProcess: any = runCommand(command, () => {});
+
   childProcess.stdin!.setEncoding("utf-8");
 
   let currentInputTimeout: string | number | NodeJS.Timeout | undefined;

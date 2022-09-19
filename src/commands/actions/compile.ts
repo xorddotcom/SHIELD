@@ -4,12 +4,12 @@ import chalk from "chalk";
 import { prompt } from "enquirer";
 import ora from "ora";
 import fsExtra from "fs-extra";
-// @ts-ignore because they don't ship types
+// @ts-ignore
 import { CircomRunner, bindings } from "circom2";
+import * as fs from "fs/promises";
 import { log } from "../../../utils/logger";
 import { WrappedSnarkJs } from "../../../utils/snarkjs";
 import { initFS } from "../../../utils/wasm";
-import * as fs from "fs/promises";
 import {
   bumpSolidityVersion,
   fileExists,
@@ -240,8 +240,18 @@ export const compile = async (options: any) => {
           // step 1:
           await circom.execute(circomWasm);
         } catch (err) {
-          if (`${err}` !== "RuntimeError: unreachable") {
+          if (`${err}`.includes("Include not found:")) {
+            log(
+              `Unable to compile ${circuitName}, Make sure you have node_modules and circomlib installed and try again`,
+              "error"
+            );
             log(`${err}`, "error");
+            process.exit(1);
+          }
+          if (`${err}` !== "RuntimeError: unreachable") {
+            log(`Unable to compile ${circuitName}`, "error");
+            log(`${err}`, "error");
+            process.exit(1);
           }
         }
 
