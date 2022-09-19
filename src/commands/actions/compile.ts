@@ -7,18 +7,12 @@ import fsExtra from "fs-extra";
 // @ts-ignore because they don't ship types
 import { CircomRunner, bindings } from "circom2";
 import { log } from "../../../utils/logger";
-import {
-  groth16Setup,
-  groth16Contribute,
-  verificationFile,
-  solidityVerifier,
-  downloadPtauFile,
-  plonkSetup,
-} from "../../../utils/snarkjs";
+import { WrappedSnarkJs } from "../../../utils/snarkjs";
 import { initFS } from "../../../utils/wasm";
 import * as fs from "fs/promises";
 import {
   bumpSolidityVersion,
+  fileExists,
   getEmptyDir,
   getEmptyDirByPath,
 } from "../../../utils/utils";
@@ -214,71 +208,94 @@ export const compile = async (options: any) => {
 
       await getEmptyDirByPath(`${outputBasePath}/${circuitName}`, 0);
 
-      const spinner = ora(
-        chalk.greenBright(`Compiling ${circuitName}\n`)
-      ).start();
+      if (await fileExists(circuitPath)) {
+        const spinner = ora(
+          chalk.greenBright(`Compiling ${circuitName}\n`)
+        ).start();
 
-      const circom = new CircomRunner({
-        args: [
-          circuitPath,
-          "--r1cs",
-          "--wat",
-          "--wasm",
-          "--sym",
-          "-o",
-          `${outputBasePath}/${circuitName}`,
-        ],
-        env: {},
-        preopens: {
-          "/": "/",
-        },
-        bindings: {
-          ...bindings,
-          fs: wasmFs,
-        },
-        returnOnExit: true,
-      });
+        const circom = new CircomRunner({
+          args: [
+            circuitPath,
+            "--r1cs",
+            "--wat",
+            "--wasm",
+            "--sym",
+            "-o",
+            `${outputBasePath}/${circuitName}`,
+          ],
+          env: {},
+          preopens: {
+            "/": "/",
+          },
+          bindings: {
+            ...bindings,
+            fs: wasmFs,
+          },
+          returnOnExit: true,
+        });
 
-      const circomWasm = await fs.readFile(wasmPath);
+        const circomWasm = await fs.readFile(wasmPath);
 
-      try {
-        await circom.execute(circomWasm);
-      } catch (err) {
-        if (`${err}` !== "RuntimeError: unreachable") {
-          log(`${err}`, "error");
+        try {
+          // step 1:
+          await circom.execute(circomWasm);
+        } catch (err) {
+          if (`${err}` !== "RuntimeError: unreachable") {
+            log(`${err}`, "error");
+          }
         }
-      }
 
-      await downloadPtauFile(ptauPath, finalConfig.circom.ptau);
+        // step 2:
+        await WrappedSnarkJs.util.downloadPtau(
+          ptauPath,
+          finalConfig.circom.ptau
+        );
 
-      if (finalConfig.circom.circuits[i].protocol === "groth16") {
-        await groth16Setup(r1csPath, ptauPath, zKeyPath.zero);
+        if (finalConfig.circom.circuits[i].protocol === "groth16") {
+          // step 3 (b):
+          await WrappedSnarkJs.groth16.setup(r1csPath, ptauPath, zKeyPath.zero);
 
-        const contribution = contributions[finalConfig.circom.circuits[i].name];
+          const contribution =
+            contributions[finalConfig.circom.circuits[i].name];
 
-        await groth16Contribute(
-          zKeyPath.zero,
+          // step 4:
+          await WrappedSnarkJs.groth16.contribute(
+            zKeyPath.zero,
+            zKeyPath.final,
+            contribution ? contribution.contributerName : "",
+            contribution ? contribution.randomEntropy : ""
+          );
+        } else {
+          // step 3 (b):
+          await WrappedSnarkJs.plonk.setup(r1csPath, ptauPath, zKeyPath.final);
+        }
+
+        // step 5:
+        await WrappedSnarkJs.util.generateVkey(zKeyPath.final, vKeyPath);
+
+        // step 6:
+        await WrappedSnarkJs.util.generateSolidityVerifier(
           zKeyPath.final,
-          contribution ? contribution.contributerName : "",
-          contribution ? contribution.randomEntropy : ""
+          solVerifierPath
+        );
+
+        // step 7:
+        await bumpSolidityVersion(
+          finalConfig.solidity ? finalConfig.solidity : "^0.8.0",
+          circuitName,
+          finalConfig.circom.circuits[i].protocol as string
+        );
+        spinner.succeed(
+          chalk.greenBright(`${circuitName} succesfully compiled.`)
         );
       } else {
-        await plonkSetup(r1csPath, ptauPath, zKeyPath.final);
+        log(
+          `unable to locate ${finalConfig.circom.circuits[i].circuit} at dir ${circuitPath} user defined config in file shield.config.js.`,
+          "error"
+        );
       }
-
-      await verificationFile(zKeyPath.final, vKeyPath);
-
-      solidityVerifier(zKeyPath.final, solVerifierPath);
-
-      bumpSolidityVersion(
-        finalConfig.solidity ? finalConfig.solidity : "^0.8.0",
-        circuitName,
-        finalConfig.circom.circuits[i].protocol as string
-      );
-      spinner.succeed(
-        chalk.greenBright(`${circuitName} succesfully compiled.`)
-      );
     }
+    process.exit(0);
   } catch (e: any) {
     log(e.message, "error");
   }

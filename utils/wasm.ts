@@ -14,7 +14,6 @@ export const initFS = () => {
 
   ufs
     .use(nodefs)
-    // I hate typescript
     .use(memfs as unknown as typeof nodefs);
 
   let bufferSize = 10 * 1024 * 1024;

@@ -49,7 +49,7 @@ export const getEmptyDirByPath = async (path: string, exitCode: number) => {
     if (exitCode === 1) {
       process.exit(1);
     }
-    return
+    return;
   }
   log(`✓ "${path}" dir created`, "success");
   await fsExtra.emptyDir(path);
@@ -57,19 +57,24 @@ export const getEmptyDirByPath = async (path: string, exitCode: number) => {
 };
 
 export const getEmptyDir = async (name: string, exitCode: number) => {
-  const tmpDir = path.join(process.cwd(), `/${name}`);
-  const dir = await fsExtra.ensureDir(tmpDir);
-  if (dir === undefined) {
-    log(
-      `A folder named "${name}" already exist, delete or move it to somewhere else and try again!!`,
-      "error"
-    );
-    if (exitCode === 1) {
-      process.exit(1);
+  try {
+    const tmpDir = path.join(process.cwd(), `/${name}`);
+    const dir = await fsExtra.ensureDir(tmpDir);
+    if (dir === undefined) {
+      log(
+        `A folder named "${name}" already exist, delete or move it to somewhere else and try again!!`,
+        "error"
+      );
+      if (exitCode === 1) {
+        process.exit(1);
+      }
     }
+    await fsExtra.emptyDir(tmpDir);
+    return tmpDir;
+  } catch (error) {
+    log(`${error}`, "error");
+    throw error;
   }
-  await fsExtra.emptyDir(tmpDir);
-  return tmpDir;
 };
 
 export const fileExists = async (file: fsExtra.PathLike) => {
@@ -94,7 +99,7 @@ export const updateCopyProjectName = async (
       JSON.stringify(packageJson, null, 3)
     );
     return res;
-  } catch (e) {
+  } catch (error) {
     log(
       "unable to locate the package.json file or rewrite the project name",
       "error"
@@ -109,37 +114,46 @@ export const createInterface = async (
   content: string,
   SOLIDITY_VERSION: string
 ) => {
-  const tmpDir = path.join(process.cwd(), `/contracts/interfaces`);
-  await fsExtra.ensureDir(tmpDir);
-
-  fsExtra.createFileSync(`./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`);
-
-  let inputVariable = "";
-  let interfaceBumped = "";
-  if (protocol === "groth16") {
-    inputVariable = content.split("uint[2] memory c,")[1].split(")")[0].trim();
-    interfaceBumped = groth16InterfaceContent(
-      inputVariable,
-      CIRCUIT_NAME,
-      SOLIDITY_VERSION
+  try {
+    const tmpDir = path.join(process.cwd(), `/contracts/interfaces`);
+    await fsExtra.ensureDir(tmpDir);
+    await fsExtra.createFileSync(
+      `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`
     );
-  } else {
-    inputVariable = content
-      .split("bytes memory proof,")[1]
-      .split(")")[0]
-      .trim();
 
-    interfaceBumped = plonkInterfaceContent(
-      inputVariable,
-      CIRCUIT_NAME,
-      SOLIDITY_VERSION
+    let inputVariable = "";
+    let interfaceBumped = "";
+    if (protocol === "groth16") {
+      inputVariable = content
+        .split("uint[2] memory c,")[1]
+        .split(")")[0]
+        .trim();
+
+      interfaceBumped = groth16InterfaceContent(
+        inputVariable,
+        CIRCUIT_NAME,
+        SOLIDITY_VERSION
+      );
+    } else {
+      inputVariable = content
+        .split("bytes memory proof,")[1]
+        .split(")")[0]
+        .trim();
+      interfaceBumped = plonkInterfaceContent(
+        inputVariable,
+        CIRCUIT_NAME,
+        SOLIDITY_VERSION
+      );
+    }
+
+    await fsExtra.writeFileSync(
+      `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`,
+      interfaceBumped
     );
+  } catch (error) {
+    log(`${error}`, "error");
+    throw error;
   }
-
-  fsExtra.writeFileSync(
-    `./contracts/interfaces/I${CIRCUIT_NAME}Verifier.sol`,
-    interfaceBumped
-  );
 };
 
 export const bumpSolidityVersion = async (
@@ -157,7 +171,7 @@ export const bumpSolidityVersion = async (
       }
     );
 
-    createInterface(CIRCUIT_NAME, PROTOCOL, content, SOLIDITY_VERSION);
+    await createInterface(CIRCUIT_NAME, PROTOCOL, content, SOLIDITY_VERSION);
 
     const bumped = content.replace(
       solidityRegex,
@@ -182,7 +196,8 @@ export const bumpSolidityVersion = async (
       `./contracts/${CIRCUIT_NAME}_Verifier.sol`,
       bumpedContractName
     );
-  } catch (e) {
-    throw e;
+  } catch (error) {
+    log(`${error}`, "error");
+    throw error;
   }
 };
