@@ -94,7 +94,7 @@ export const executeWithInput = (
 
   const promise = new Promise((resolve, reject) => {
     // Get errors from CLI
-    childProcess.stderr!.on("data", (data) => {
+    childProcess.stderr!.on("data", (data: any) => {
       // Log debug I/O statements on tests
       if (env && env.DEBUG) {
         log(`error: ${data.toString()}`, "error");
@@ -102,14 +102,14 @@ export const executeWithInput = (
     });
 
     // Get output from CLI
-    childProcess.stdout!.on("data", (data) => {
+    childProcess.stdout!.on("data", (data: any) => {
       // Log debug I/O statements on tests
       if (env && env.DEBUG) {
         log(`output: ${data.toString()}`, "info");
       }
     });
 
-    childProcess.stderr!.once("data", (err) => {
+    childProcess.stderr!.once("data", (err: any) => {
       childProcess.stdin!.end();
 
       if (currentInputTimeout) {
