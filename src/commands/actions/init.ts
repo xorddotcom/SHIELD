@@ -27,7 +27,7 @@ export const init = async () => {
               value
             )
           ) {
-            await getEmptyDir(value.trim());
+            await getEmptyDir(value.trim(), 1);
             projectName = value.trim();
             return true;
           } else {
@@ -67,11 +67,11 @@ export const init = async () => {
           if (type === "Quit") {
             process.exit(1);
           } else if (type === "Empty") {
-            const src = `${getPackageRoot()}/template/config`;
+            const src = `${getPackageRoot()}/templates/config`;
             const dest = `${process.cwd()}/${projectName}`;
             projectPath = dest;
             await fsExtra.copy(src, dest);
-            log("Successfully generated the config file.", "success");
+            log("✓ Successfully generated the config file.", "success");
             process.exit(1);
           }
           return value;
@@ -83,12 +83,12 @@ export const init = async () => {
         message: "Please select the proof system for project.",
         choices: ["Groth16", "Plonk"],
         result: async (value) => {
-          const src = `${getPackageRoot()}/template/${type.toLowerCase()}/${value.toLowerCase()}`;
+          const src = `${getPackageRoot()}/templates/${type.toLowerCase()}/${value.toLowerCase()}`;
           const dest = `${process.cwd()}/${projectName}`;
           projectPath = dest;
           await fsExtra.copy(src, dest);
           await updateCopyProjectName(projectName, projectPath);
-          log("Successfully generated the code.", "success");
+          log("✓ Successfully generated the code.", "success");
           return dest;
         },
       },

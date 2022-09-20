@@ -1,4 +1,3 @@
-import { BigNumberish } from "ethers";
 import path from "path";
 // @ts-ignore
 import { plonk } from "snarkjs";
