@@ -18,7 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "circom_tester": "0.0.14",
+    "circom_tester": "0.0.18",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
     "hardhat": "^2.10.1",
