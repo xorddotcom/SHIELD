@@ -1,3 +1,23 @@
 node_modules
-src
-utils
+src/
+utils/
+
+#tests
+test
+coverage
+
+#build tools
+.husky
+
+#workflows
+.github
+
+#linters
+.jscsrc
+.jshintrc
+.eslintrc*
+
+#editor settings
+.idea
+.editorconfig
+.prettierrc.json
