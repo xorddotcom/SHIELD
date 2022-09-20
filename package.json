@@ -13,7 +13,8 @@
     "setup": "npm install -g",
     "lint": "eslint 'src/**/*.ts' 'utils/**/*.ts' 'test/**/*.ts' --fix",
     "test": "npm run build:dev && jest --detectOpenHandles",
-    "semantic-release": "semantic-release --branches main"
+    "semantic-release": "semantic-release --branches main",
+    "postinstall": "node scripts/postinstall.js"
   },
   "bin": {
     "shield": "dist/src/index.js"
