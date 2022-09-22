@@ -1,4 +1,5 @@
 import { compile, init } from "../actions";
+import { generateWitness } from "../actions/calculateWitness";
 
 interface Icommands {
   name: string;
@@ -18,5 +19,11 @@ export const commands: Icommands[] = [
     description: "compiles the circuits to verifer contracts",
     option: ["-c, --circuit <value>", "specific circuit to compile"],
     action: compile,
+  },
+  {
+    name: "calculatewitness",
+    description: "claculte the witness",
+    option: ["-c, --circuit <value>", "specific circuit to compile"],
+    action: generateWitness,
   },
 ];

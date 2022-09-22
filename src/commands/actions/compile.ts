@@ -196,6 +196,7 @@ export const compile = async (options: any) => {
       const circuitPath = `${process.cwd()}${
         finalConfig.circom.inputBasePath as string
       }/${finalConfig.circom.circuits[i].circuit as string}`;
+      
       const ptauPath = `${outputBasePath}/${finalConfig.circom.ptau}`;
       const r1csPath = `${outputBasePath}/${circuitName}/${circuitName}.r1cs`;
       const zKeyPath = {

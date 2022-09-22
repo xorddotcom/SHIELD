@@ -8,7 +8,7 @@ import shelljs from "shelljs";
 import fsExtra from "fs-extra";
 import { fileExists } from "./utils";
 import { log } from "./logger";
-const { zKey, plonk } = require("snarkjs");
+const { zKey, plonk, wtns } = require("snarkjs");
 const { stringifyBigInts } = utils;
 
 export const WrappedSnarkJs = {
@@ -139,5 +139,39 @@ export const WrappedSnarkJs = {
         throw error;
       }
     },
+    generateWtns: async (wtnsPath: string, wasmPath: string, input: any) => {
+      try {
+        await wtns.calculate(input, wasmPath, wtnsPath, defaultWitnessOption());
+        const wtnsData = await wtns.exportJson(wtnsPath);
+        await bfj.write(
+          wtnsPath.replace(".wtns", ".json"),
+          stringifyBigInts(wtnsData),
+          { space: 1 }
+        );
+        if (wtnsData) {
+          log(
+            `\n✓ Successfully generated the verification key file\n`,
+            "success"
+          );
+        }
+      } catch (error) {
+        log(`${error}`, "error");
+        throw error;
+      }
+    },
   },
 };
+
+function defaultWitnessOption() {
+  let logFn = console.log;
+  let calculateWitnessOptions = {
+    sanityCheck: true,
+    logTrigger: logFn,
+    logOutput: logFn,
+    logStartComponent: logFn,
+    logFinishComponent: logFn,
+    logSetSignal: logFn,
+    logGetSignal: logFn,
+  };
+  return calculateWitnessOptions;
+}
