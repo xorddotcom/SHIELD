@@ -146,3 +146,14 @@ For making a contribution refer to [CONTRIBUTION.md](https://github.com/xorddotc
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
+
+## Donate
+
+[![Buy Us A Coffee](https://srv-cdn.himpfen.io/badges/buymeacoffee/buymeacoffee-flat.svg)](https://cryptip.me/0xf1f7dfb65C47445ACA50319512373A50C396fCdF) &nbsp;
+
+
+**Ethereum      :** `0xf1f7dfb65C47445ACA50319512373A50C396fCdF` <br />
+**Optimism      :** `0xf1f7dfb65C47445ACA50319512373A50C396fCdF` <br />
+**Polygon       :** `0xf1f7dfb65C47445ACA50319512373A50C396fCdF` <br />
+**Zksync        :** `0xf1f7dfb65C47445ACA50319512373A50C396fCdF` <br />
+**Arbitrum      :** `0xf1f7dfb65C47445ACA50319512373A50C396fCdF` <br />
