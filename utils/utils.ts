@@ -2,6 +2,7 @@ import path from "path";
 import fsExtra from "fs-extra";
 import fs from "fs";
 import { log } from "./logger";
+
 export const indexDist = "node ../../dist/src/index.js";
 
 const groth16InterfaceContent = (
@@ -155,6 +156,7 @@ export const createInterface = async (
     throw error;
   }
 };
+
 
 export const bumpSolidityVersion = async (
   SOLIDITY_VERSION: string,
