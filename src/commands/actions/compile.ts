@@ -13,7 +13,6 @@ import { initFS } from "../../../utils/wasm";
 import {
   bumpSolidityVersion,
   fileExists,
-  getEmptyDir,
   getEmptyDirByPath,
 } from "../../../utils/utils";
 
@@ -46,7 +45,6 @@ interface IUserConfig {
 }
 
 export const compile = async (options: any) => {
-  console.log("starting compile");
   try {
     let userConfig: IUserConfig;
     let circuits: ICircuits[];
@@ -196,6 +194,7 @@ export const compile = async (options: any) => {
       const circuitPath = `${process.cwd()}${
         finalConfig.circom.inputBasePath as string
       }/${finalConfig.circom.circuits[i].circuit as string}`;
+
       const ptauPath = `${outputBasePath}/${finalConfig.circom.ptau}`;
       const r1csPath = `${outputBasePath}/${circuitName}/${circuitName}.r1cs`;
       const zKeyPath = {
@@ -239,18 +238,18 @@ export const compile = async (options: any) => {
         try {
           // step 1:
           await circom.execute(circomWasm);
-        } catch (err) {
-          if (`${err}`.includes("Include not found:")) {
+        } catch (error) {
+          if (`${error}`.includes("Include not found:")) {
             log(
               `Unable to compile ${circuitName}, Make sure you have node_modules and circomlib installed and try again`,
               "error"
             );
-            log(`${err}`, "error");
+            log(`${error}`, "error");
             process.exit(1);
           }
-          if (`${err}` !== "RuntimeError: unreachable") {
+          if (`${error}` !== "RuntimeError: unreachable") {
             log(`Unable to compile ${circuitName}`, "error");
-            log(`${err}`, "error");
+            log(`${error}`, "error");
             process.exit(1);
           }
         }
@@ -295,9 +294,7 @@ export const compile = async (options: any) => {
           circuitName,
           finalConfig.circom.circuits[i].protocol as string
         );
-        spinner.succeed(
-          chalk.greenBright(`${circuitName} succesfully compiled.`)
-        );
+        spinner.succeed(chalk.greenBright(`${circuitName} compiled.`));
       } else {
         log(
           `unable to locate ${finalConfig.circom.circuits[i].circuit} at dir ${circuitPath} user defined config in file shield.config.js.`,
@@ -308,5 +305,6 @@ export const compile = async (options: any) => {
     process.exit(0);
   } catch (e: any) {
     log(e.message, "error");
+    process.exit(0);
   }
 };

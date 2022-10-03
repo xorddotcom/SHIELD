@@ -1,4 +1,5 @@
 const fsExtra = require("fs-extra");
+
 const main = () => {
   const content = fsExtra.readFileSync(
     `./node_modules/circom2/vendor/wasi.js`,

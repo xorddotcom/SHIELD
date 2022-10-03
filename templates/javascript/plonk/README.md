@@ -1,4 +1,3 @@
-
 # Sample Hardhat Project
 
 This project demonstrates a basic Shield use case. It comes with a sample contract and circuit, a test for the contract and circuit integration, and a script that deploys that contract.
@@ -16,19 +15,26 @@ npm run build
 To compile contracts, use the task:
 
 ```shell
+
 npm run compile
 ```
 
 To compile and build circuits, use the task:
 
 ```shell
-npm run compile:circuits
+
+shield compile
+```
+
+## Debug & Generate Witness
+
+```
+shield debug
 ```
 
 ## Clean
 
 clean the compiled artifacts saved in the artifacts/:
-
 
 ```shell
 npm run clean
@@ -51,7 +57,7 @@ To run tests, run the following command
 
 ## Deployment
 
-To deploy this project on localhost run : 
+To deploy this project on localhost run :
 
 ```bash
 

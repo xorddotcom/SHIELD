@@ -19,6 +19,10 @@ module.exports = {
         circuit: "demo.circom",
         // (required) Output path for zkey file, inferred from `name` if unspecified
         zkey: "demo.zkey",
+        // (optional) Input path for input signal data, inferred from `name` if unspecified
+        input: "input.json",
+        // // (optional) Output path for witness file, inferred from `name` if unspecified
+        witness: "demo.json",
       },
     ],
   },
