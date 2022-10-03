@@ -20,9 +20,9 @@ describe("The Shield CLI", () => {
     it("should through error on empty sheild command", async () => {
       try {
         await executeWithInput("shield");
-      } catch (err) {
+      } catch (error) {
         const numberOfMatches = ["shield", "Usage", "init", "help"].filter(
-          (x) => err.indexOf(x) > -1
+          (x) => error.indexOf(x) > -1
         ).length;
         expect(numberOfMatches).toBeGreaterThan(0);
       }
@@ -37,8 +37,8 @@ describe("The Shield CLI", () => {
     it("should trough error on invalid help command", async () => {
       try {
         await executeWithInput(`node ./dist/src/index.js --helpme`);
-      } catch (err) {
-        const response = err.includes("unknown option '--helpme");
+      } catch (error) {
+        const response = error.includes("unknown option '--helpme");
         expect(response).toBe(true);
       }
     });
@@ -78,8 +78,8 @@ describe("The Shield CLI", () => {
     it("should through error on invalid initialize command", async () => {
       try {
         await executeWithInput("shield --initialize");
-      } catch (err) {
-        expect(err).toBe("error: unknown option '--initialize'\n");
+      } catch (error) {
+        expect(error).toBe("error: unknown option '--initialize'\n");
       }
     });
 

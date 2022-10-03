@@ -50,7 +50,7 @@ export const getInputJson = async (input: string) => {
   const inputString = await fsExtra.readFile(input, "utf8");
   try {
     return JSON.parse(inputString.toString().replace(/^\uFEFF/, ""));
-  } catch (err: any) {
-    throw new Error(err);
+  } catch (error: any) {
+    throw new Error(error);
   }
 };

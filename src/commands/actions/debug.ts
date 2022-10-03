@@ -2,19 +2,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import chalk from "chalk";
 import ora from "ora";
-import { log } from "../../../utils/logger";
+import { log, logSignals } from "../../../utils/logger";
 import { initFS } from "../../../utils/wasm";
-import {
-  fileExists,
-  getEmptyDir,
-  getEmptyDirByPath,
-} from "../../../utils/utils";
-import { builder } from "../../../utils/witness";
-import ufs from "@phated/unionfs";
-import path from "path";
+import { fileExists } from "../../../utils/utils";
 import { WrappedSnarkJs } from "../../../utils/snarkjs";
-
-const { utils } = require("ffjavascript");
+import { Checker } from "../../../utils/checker";
+// @ts-ignore
+import { load } from "r1csfile";
+// @ts-ignore
+import { utils } from "ffjavascript";
 
 enum Protocol {
   GROTH16 = "groth16",
@@ -26,7 +22,7 @@ interface ICircuits {
   protocol?: Protocol;
   circuit?: string;
   zkey?: string;
-  witness?: string;
+  input?: string;
 }
 interface IUserConfig {
   solidity?: string;
@@ -38,8 +34,7 @@ interface IUserConfig {
   };
 }
 
-export const generateWitness = async (options: any) => {
-  console.log("generating witness");
+export const debug = async (options: any) => {
   try {
     let userConfig: IUserConfig;
     let circuits: ICircuits[];
@@ -130,50 +125,50 @@ export const generateWitness = async (options: any) => {
     for (let i = 0; i < finalConfig.circom.circuits.length; i++) {
       const circuitName = finalConfig.circom.circuits[i].name;
 
-      const circuitPath = `${process.cwd()}${
-        finalConfig.circom.inputBasePath as string
-      }/${finalConfig.circom.circuits[i].circuit as string}`;
+      const spinner = ora(
+        chalk.greenBright(`Debugging ${circuitName}\n`)
+      ).start();
 
       const wtnsFilePath = `${process.cwd()}${
         finalConfig.circom.inputBasePath as string
-      }/witness.wtns`;
+      }/${finalConfig.circom.circuits[i].name}_witness.wtns`;
 
-      const wasmPath = `${outputBasePath}/${circuitName}/${circuitName}_js/${circuitName}.wasm`;
+      const wasmFilePath = `${outputBasePath}/${circuitName}/${circuitName}_js/${circuitName}.wasm`;
+
+      const r1csFilePath = `${outputBasePath}/${circuitName}/${circuitName}.r1cs`;
+
+      const symFilePath = `${outputBasePath}/${circuitName}/${circuitName}.sym`;
+
+      if (!(await fileExists(wasmFilePath))) {
+        log(
+          `\nUnable to locate ${circuitName}.wasm at dir ${wasmFilePath}, run shield compile to generate .wasm file in this output dir`,
+          "error"
+        );
+        continue;
+      }
+
+      if (!(await fileExists(r1csFilePath))) {
+        log(
+          `\nUnable to locate file ${circuitName}.r1cs at dir ${r1csFilePath}, run shield compile to generate .r1cs file in this output dir`,
+          "error"
+        );
+        continue;
+      }
+
+      if (!(await fileExists(symFilePath))) {
+        log(
+          `\nUnable to locate file ${circuitName}.sym at dir ${symFilePath}, run shield compile to generate .sym file in this output dir`,
+          "error"
+        );
+        continue;
+      }
 
       const inputFilePath = `${process.cwd()}${
         finalConfig.circom.inputBasePath as string
-      }/${finalConfig.circom.circuits[i].witness as string}`;
-
-      console.log({ inputFilePath });
+      }/${finalConfig.circom.circuits[i].input as string}`;
 
       if (await fileExists(inputFilePath)) {
-        const spinner = ora(
-          chalk.greenBright(`Compiling ${circuitName}\n`)
-        ).start();
-
-        const wasmData = ufs.readFileSync(wasmPath);
-
-        let logs;
-
         try {
-          const witness = await builder(wasmData, {
-            log(message: any, label: string) {
-              if (label) {
-                console.log("labellllllssss =============>", {
-                  label,
-                  message,
-                });
-                logs.push(label + ": " + message.toString());
-              } else {
-                console.log("labellllllssss =============>", {
-                  label,
-                  message,
-                });
-                logs.push(message.toString());
-              }
-            },
-          });
-
           const inputFileData = await wasmFs.readFileSync(
             inputFilePath,
             "utf8"
@@ -181,25 +176,46 @@ export const generateWitness = async (options: any) => {
 
           const input = utils.unstringifyBigInts(JSON.parse(inputFileData));
 
-          const wtnsFile = await witness.calculateWTNSBin(input, true);
-
-          await WrappedSnarkJs.util.generateWtns(wtnsFilePath, wasmPath, input);
-
-          spinner.succeed(
-            chalk.greenBright(`${circuitName} succesfully compiled.`)
+          const wtnsFile = await WrappedSnarkJs.util.generateWtns(
+            wtnsFilePath,
+            wasmFilePath,
+            input
           );
-        } catch (err) {
-          console.log("error in generate witness", err);
+
+          const r1cs = await load(r1csFilePath, true, false);
+
+          const symFile = await wasmFs.readFileSync(symFilePath);
+
+          await logSignals(r1cs, wtnsFile, symFile);
+
+          const checker = new Checker(r1csFilePath, symFilePath);
+
+          await checker.checkConstraintsAndOutput(
+            wtnsFilePath.replace(".wtns", ".json")
+          );
+          spinner.succeed(
+            chalk.greenBright(`${circuitName} succesfully debugged.`)
+          );
+        } catch (error) {
+          if (error instanceof Error) {
+            spinner.fail(chalk.redBright(`${error.message}`));
+          } else {
+            log(
+              `\nerror while debugging the circuit ${circuitName} ${error}`,
+              "error"
+            );
+            spinner.fail(chalk.redBright(`${error}`));
+          }
         }
       } else {
         log(
-          `unable to locate ${finalConfig.circom.circuits[i].witness} at dir ${inputFilePath} user defined config in file shield.config.js.`,
+          `unable to locate ${finalConfig.circom.circuits[i].input} at dir ${inputFilePath} user defined config in file shield.config.js.`,
           "error"
         );
       }
     }
     process.exit(0);
-  } catch (e: any) {
-    log(e.message, "error");
+  } catch (error: any) {
+    log(error.message, "error");
   }
 };

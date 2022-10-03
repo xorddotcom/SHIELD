@@ -10,19 +10,28 @@ Try running some of the following tasks:
 To Build circuits and compile contracts, use the build task:
 
 ```shell
+
 npm run build
 ```
 
 To compile contracts, use the task:
 
 ```shell
+
 npm run compile
 ```
 
 To compile and build circuits, use the task:
 
 ```shell
-npm run compile:circuits
+
+shield compile
+```
+
+## Debug & Generate Witness
+
+```
+shield debug
 ```
 
 ## Clean
@@ -31,12 +40,14 @@ clean the compiled artifacts saved in the artifacts/:
 
 
 ```shell
+
 npm run clean
 ```
 
 clean the compiled circuit build files saved in the circuits/build:
 
 ```shell
+
 npm run clean:circuits
 ```
 
@@ -45,8 +56,8 @@ npm run clean:circuits
 To run tests, run the following command
 
 ```shell
-  npm run test
 
+  npm run test
 ```
 
 ## Deployment

@@ -6,10 +6,11 @@
   "scripts": {
     "build": "npm run compile:circuits && npm run compile",
     "clean": "hardhat clean",
-    "clean:circuits": "rm -rf build && rm contracts/Verifier.sol",
+    "clean:circuits": "rm -rf build && rm contracts/Multiplier_Verifier.sol",
     "clean:types": "rm -rf typechain-types",
     "compile": "hardhat compile",
     "compile:circuits": "shield compile",
+    "debug": "shield debug",
     "info": "snarkjs info -r circuits/build/Multiplier/Multiplier.r1cs",
     "test": "hardhat test",
     "types": "hardhat typechain",

@@ -1,5 +1,5 @@
 import { compile, init } from "../actions";
-import { generateWitness } from "../actions/calculateWitness";
+import { debug } from "../actions/debug";
 
 interface Icommands {
   name: string;
@@ -7,6 +7,7 @@ interface Icommands {
   option?: string[];
   action(options: any): any;
 }
+
 
 export const commands: Icommands[] = [
   {
@@ -21,9 +22,9 @@ export const commands: Icommands[] = [
     action: compile,
   },
   {
-    name: "calculatewitness",
-    description: "claculte the witness",
-    option: ["-c, --circuit <value>", "specific circuit to compile"],
-    action: generateWitness,
+    name: "debug",
+    description: "debug (display input/output signals, circuit logs, and passed/failed constraints ) and generate a witness file of the circuit",
+    option: ["-c, --circuit <value>", "specific circuit to debug"],
+    action: debug,
   },
 ];

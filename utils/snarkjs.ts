@@ -1,15 +1,25 @@
 // @ts-ignore
 import bfj from "bfj";
 // @ts-ignore
-import { utils } from "ffjavascript";
+import { utils, Scalar } from "ffjavascript";
 import fs from "fs";
 import path from "path";
 import shelljs from "shelljs";
 import fsExtra from "fs-extra";
 import { fileExists } from "./utils";
 import { log } from "./logger";
+import { wtnsBuilder } from "./witness";
+// @ts-ignore
+import * as fastFile from "fastfile";
 const { zKey, plonk, wtns } = require("snarkjs");
-const { stringifyBigInts } = utils;
+const { stringifyBigInts, unstringifyBigInts } = utils;
+import {
+  createBinFile,
+  endWriteSection,
+  startWriteSection,
+  writeBigInt,
+  // @ts-ignore
+} from "@iden3/binfileutils";
 
 export const WrappedSnarkJs = {
   groth16: {
@@ -32,7 +42,7 @@ export const WrappedSnarkJs = {
       entropy: string
     ) => {
       try {
-        const response = zKey.contribute(
+        const response = await zKey.contribute(
           zkeyPath,
           finalZkPath,
           contributer,
@@ -141,7 +151,33 @@ export const WrappedSnarkJs = {
     },
     generateWtns: async (wtnsPath: string, wasmPath: string, input: any) => {
       try {
-        await wtns.calculate(input, wasmPath, wtnsPath, defaultWitnessOption());
+        const _input = unstringifyBigInts(input);
+
+        const fdWasm = await fastFile.readExisting(wasmPath);
+        const wasm = await fdWasm.read(fdWasm.totalSize);
+        await fdWasm.close();
+
+        const wc = await wtnsBuilder(wasm, {
+          log() {},
+        });
+        let w;
+        if (wc.circom_version() == 1) {
+          w = await wc.calculateBinWitness(_input, true);
+
+          const fdWtns = await createBinFile(wtnsPath, "wtns", 2, 2);
+
+          await writeBin(fdWtns, w, wc.prime);
+
+          await fdWtns.close();
+        } else {
+          const fdWtns = await fastFile.createOverride(wtnsPath);
+
+          w = await wc.calculateWTNSBin(_input, true);
+
+          await fdWtns.write(w);
+          await fdWtns.close();
+        }
+
         const wtnsData = await wtns.exportJson(wtnsPath);
         await bfj.write(
           wtnsPath.replace(".wtns", ".json"),
@@ -149,11 +185,9 @@ export const WrappedSnarkJs = {
           { space: 1 }
         );
         if (wtnsData) {
-          log(
-            `\n✓ Successfully generated the verification key file\n`,
-            "success"
-          );
+          log(`✓ Successfully generated the witness file`, "success");
         }
+        return w;
       } catch (error) {
         log(`${error}`, "error");
         throw error;
@@ -162,16 +196,18 @@ export const WrappedSnarkJs = {
   },
 };
 
-function defaultWitnessOption() {
-  let logFn = console.log;
-  let calculateWitnessOptions = {
-    sanityCheck: true,
-    logTrigger: logFn,
-    logOutput: logFn,
-    logStartComponent: logFn,
-    logFinishComponent: logFn,
-    logSetSignal: logFn,
-    logGetSignal: logFn,
-  };
-  return calculateWitnessOptions;
+async function writeBin(fd: any, witnessBin: any, prime: any) {
+  await startWriteSection(fd, 1);
+  const n8 = (Math.floor((Scalar.bitLength(prime) - 1) / 64) + 1) * 8;
+  await fd.writeULE32(n8);
+  await writeBigInt(fd, prime, n8);
+  if (witnessBin.byteLength % n8 != 0) {
+    throw new Error("Invalid witness length");
+  }
+  await fd.writeULE32(witnessBin.byteLength / n8);
+  await endWriteSection(fd);
+
+  await startWriteSection(fd, 2);
+  await fd.write(witnessBin);
+  await endWriteSection(fd);
 }

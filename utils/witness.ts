@@ -1,4 +1,21 @@
-export const builder = async (
+import {
+  startReadUniqueSection,
+  readBigInt,
+  endReadSection,
+  // @ts-ignore
+} from "@iden3/binfileutils";
+import { circomLog, log } from "./logger";
+
+export const readWtnsHeader = async (fd: any, sections: any) => {
+  await startReadUniqueSection(fd, sections, 1);
+  const n8 = await fd.readULE32();
+  const q = await readBigInt(fd, n8);
+  const nWitness = await fd.readULE32();
+  await endReadSection(fd);
+  return { n8, q, nWitness };
+};
+
+export const wtnsBuilder = async (
   code: BufferSource,
   options: { log?: (message: any, label: string) => void }
 ) => {
@@ -7,13 +24,9 @@ export const builder = async (
   let wasmModule;
   try {
     wasmModule = await WebAssembly.compile(code);
-  } catch (err) {
-    console.log(err);
-    console.log(
-      "\nTry to run circom --c in order to generate c++ code instead\n"
-    );
+  } catch (error) {
     // @ts-ignore
-    throw new Error(err);
+    throw new Error(error);
   }
 
   let wc;
@@ -24,35 +37,35 @@ export const builder = async (
   const instance = await WebAssembly.instantiate(wasmModule, {
     runtime: {
       exceptionHandler: function (code: number) {
-        let err;
+        let error;
         if (code == 1) {
-          err = "Signal not found.\n";
+          error = "Signal not found.\n";
         } else if (code == 2) {
-          err = "Too many signals set.\n";
+          error = "Too many signals set.\n";
         } else if (code == 3) {
-          err = "Signal already set.\n";
+          error = "Signal already set.\n";
         } else if (code == 4) {
-          err = "Assert Failed.\n";
+          error = "Assert Failed.\n";
         } else if (code == 5) {
-          err = "Not enough memory.\n";
+          error = "Not enough memory.\n";
         } else if (code == 6) {
-          err = "Input signal array access exceeds the size.\n";
+          error = "Input signal array access exceeds the size.\n";
         } else {
-          err = "Unknown error.\n";
+          error = "Unknown error.\n";
         }
-        throw new Error(err + errStr);
+        throw new Error(error + errStr);
       },
       printErrorMessage: function () {
         errStr += getMessage() + "\n";
-        console.error({ errStr });
       },
       writeBufferMessage: function () {
         const msg = getMessage();
         // Any calls to `log()` will always end with a `\n`, so that's when we print and reset
         if (msg === "\n") {
-          console.log(msgStr);
+          circomLog(msgStr);
+        }
+        if (msg === "\n") {
           msgStr = "";
-          console.error({ msgStr });
         } else {
           // If we've buffered other content, put a space in between the items
           if (msgStr !== "") {
@@ -60,7 +73,6 @@ export const builder = async (
           }
           // Then append the message to the message we are creating
           msgStr += msg;
-          console.error({ msgStr });
         }
       },
       showSharedRWMemory: function () {
@@ -79,7 +91,6 @@ export const builder = async (
     // @ts-ignore
 
     var c = instance.exports.getMessageChar();
-    console.log("ccccccccccccccccccccccccccccc", { c });
     while (c != 0) {
       message += String.fromCharCode(c);
       // @ts-ignore
@@ -105,11 +116,6 @@ export const builder = async (
     // Then append the value to the message we are creating
     msgStr += fromArray32(arr).toString();
     const label = getMessage();
-    console.log(
-      "&&&&&&&&&&&&&&&&&&&&&&&&&&&&",
-      { msgStr, label },
-      fromArray32(arr)
-    );
   }
 };
 
@@ -143,50 +149,51 @@ class WitnessCalculator {
   }
 
   async _doCalculateWitness(input: any, sanityCheck: any) {
-    //input is assumed to be a map from signals to arrays of bigints
-    this.instance.exports.init(this.sanityCheck || sanityCheck ? 1 : 0);
-    const keys = Object.keys(input);
-    var input_counter = 0;
-    keys.forEach((k) => {
-      const h = fnvHash(k);
-      const hMSB = parseInt(h.slice(0, 8), 16);
-      const hLSB = parseInt(h.slice(8, 16), 16);
-      const fArr = flatArray(input[k]);
-      let signalSize = this.instance.exports.getInputSignalSize(hMSB, hLSB);
-      console.log("signal sizing =====>", { signalSize });
-      if (signalSize < 0) {
-        throw new Error(`Signal ${k} not found\n`);
-      }
-      if (fArr.length < signalSize) {
-        throw new Error(`Not enough values for input signal ${k}\n`);
-      }
-      if (fArr.length > signalSize) {
-        throw new Error(`Too many values for input signal ${k}\n`);
-      }
-      for (let i = 0; i < fArr.length; i++) {
-        console.log({ fArr }, k);
-        const arrFr = toArray32(BigInt(fArr[i]) % this.prime, this.n32);
-        console.log({ arrFr });
-        for (let j = 0; j < this.n32; j++) {
-          this.instance.exports.writeSharedRWMemory(j, arrFr[this.n32 - 1 - j]);
+    try {
+      //input is assumed to be a map from signals to arrays of bigints
+      this.instance.exports.init(this.sanityCheck || sanityCheck ? 1 : 0);
+      const keys = Object.keys(input);
+      var input_counter = 0;
+      keys.forEach((k) => {
+        const h = fnvHash(k);
+        const hMSB = parseInt(h.slice(0, 8), 16);
+        const hLSB = parseInt(h.slice(8, 16), 16);
+        const fArr = flatArray(input[k]);
+        let signalSize = this.instance.exports.getInputSignalSize(hMSB, hLSB);
+        if (signalSize < 0) {
+          throw new Error(`Signal ${k} not found\n`);
         }
-        try {
-          console.log({ hMSB, hLSB, i }, arrFr[i]);
-          this.instance.exports.setInputSignal(hMSB, hLSB, i);
-          console.log({ input_counter });
-          input_counter++;
-        } catch (err) {
-          console.log(`After adding signal ${i} of ${k}`);
-          console.log({ err });
-          // @ts-ignore
-          throw new Error(err);
+        if (fArr.length < signalSize) {
+          throw new Error(`Not enough values for input signal ${k}\n`);
         }
+        if (fArr.length > signalSize) {
+          throw new Error(`Too many values for input signal ${k}\n`);
+        }
+        for (let i = 0; i < fArr.length; i++) {
+          const arrFr = toArray32(BigInt(fArr[i]) % this.prime, this.n32);
+          for (let j = 0; j < this.n32; j++) {
+            this.instance.exports.writeSharedRWMemory(
+              j,
+              arrFr[this.n32 - 1 - j]
+            );
+          }
+          try {
+            this.instance.exports.setInputSignal(hMSB, hLSB, i);
+            input_counter++;
+          } catch (error) {
+            // @ts-ignore
+            throw new Error(error);
+          }
+        }
+      });
+      if (input_counter < this.instance.exports.getInputSize()) {
+        throw new Error(
+          `Not all inputs have been set. Only ${input_counter} out of ${this.instance.exports.getInputSize()}`
+        );
       }
-    });
-    if (input_counter < this.instance.exports.getInputSize()) {
-      throw new Error(
-        `Not all inputs have been set. Only ${input_counter} out of ${this.instance.exports.getInputSize()}`
-      );
+    } catch (error) {
+      // @ts-ignore
+      log(`${error.message}`, "error");
     }
   }
 

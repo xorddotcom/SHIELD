@@ -28,10 +28,10 @@ export const runCommand = (
   return exec(
     command,
     (function () {
-      return function (err, data, stderr) {
+      return function (error, data, stderr) {
         if (!callback) return;
 
-        callback(err, data, stderr);
+        callback(error, data, stderr);
       };
     })()
   );
@@ -109,14 +109,14 @@ export const executeWithInput = (
       }
     });
 
-    childProcess.stderr!.once("data", (err: any) => {
+    childProcess.stderr!.once("data", (error: any) => {
       childProcess.stdin!.end();
 
       if (currentInputTimeout) {
         clearTimeout(currentInputTimeout);
         inputs = [];
       }
-      reject(err.toString());
+      reject(error.toString());
     });
 
     childProcess.on("error", reject);
