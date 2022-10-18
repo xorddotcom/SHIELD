@@ -4,6 +4,7 @@ import { load } from "r1csfile";
 import { ZqField } from "ffjavascript";
 import { log } from "./logger";
 import assert from "assert";
+import { Console } from "console";
 
 const nodefs = require("fs");
 const fs = require("fs/promises");
@@ -15,7 +16,7 @@ const groupOrderPrime = BigInt(groupOrderPrimeStr);
 export class Checker {
   r1csFilepath;
   symFilepath;
-  r1cs: { constraints: any; prime: any } | undefined;
+  r1cs: { constraints: any; prime: any; nConstraints: number } | any;
   symbols: {} | undefined;
   signals: {} | undefined;
   constructor(r1csFilepath: string, symFilepath: string) {
@@ -31,18 +32,26 @@ export class Checker {
 
   async checkConstraintsAndOutput(witnessFilePath: string) {
     // 0. load r1cs and witness
-    if (!this.r1cs) {
-      await this.load();
+    try {
+      if (!this.r1cs) {
+        await this.load();
+      }
+      let witness;
+      if (witnessFilePath.endsWith("json")) {
+        witness = JSON.parse(nodefs.readFileSync(witnessFilePath).toString());
+      }
+      // 1. check constraints
+      const F = new ZqField(this.r1cs?.prime);
+      const constraints = this.r1cs?.constraints;
+      if (this.r1cs.nConstraints !== 0) {
+        await checkConstraints(F, constraints, witness, this.signals);
+      } else {
+        log("No quadratic constraint signal found:\n", "info");
+      }
+      return true;
+    } catch (err) {
+      console.log({ err });
     }
-    let witness;
-    if (witnessFilePath.endsWith("json")) {
-      witness = JSON.parse(nodefs.readFileSync(witnessFilePath).toString());
-    }
-    // 1. check constraints
-    const F = new ZqField(this.r1cs?.prime);
-    const constraints = this.r1cs?.constraints;
-    await checkConstraints(F, constraints, witness, this.signals);
-    return true;
   }
 }
 

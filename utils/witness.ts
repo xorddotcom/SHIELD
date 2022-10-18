@@ -136,8 +136,10 @@ class WitnessCalculator {
     const arr = new Uint32Array(this.n32);
     for (let i = 0; i < this.n32; i++) {
       arr[this.n32 - 1 - i] = this.instance.exports.readSharedRWMemory(i);
+
     }
     this.prime = fromArray32(arr);
+
 
     this.witnessSize = this.instance.exports.getWitnessSize();
 
@@ -153,6 +155,7 @@ class WitnessCalculator {
       //input is assumed to be a map from signals to arrays of bigints
       this.instance.exports.init(this.sanityCheck || sanityCheck ? 1 : 0);
       const keys = Object.keys(input);
+  
       var input_counter = 0;
       keys.forEach((k) => {
         const h = fnvHash(k);
@@ -160,6 +163,7 @@ class WitnessCalculator {
         const hLSB = parseInt(h.slice(8, 16), 16);
         const fArr = flatArray(input[k]);
         let signalSize = this.instance.exports.getInputSignalSize(hMSB, hLSB);
+
         if (signalSize < 0) {
           throw new Error(`Signal ${k} not found\n`);
         }
@@ -205,9 +209,11 @@ class WitnessCalculator {
     for (let i = 0; i < this.witnessSize; i++) {
       this.instance.exports.getWitness(i);
       const arr = new Uint32Array(this.n32);
+
       for (let j = 0; j < this.n32; j++) {
         arr[this.n32 - 1 - j] = this.instance.exports.readSharedRWMemory(j);
       }
+
       // @ts-ignore
       w.push(fromArray32(arr));
       // @ts-ignore
@@ -221,7 +227,6 @@ class WitnessCalculator {
     const buff32 = new Uint32Array(this.witnessSize * this.n32);
     const buff = new Uint8Array(buff32.buffer);
     await this._doCalculateWitness(input, sanityCheck);
-
     for (let i = 0; i < this.witnessSize; i++) {
       this.instance.exports.getWitness(i);
       const pos = i * this.n32;
@@ -236,6 +241,7 @@ class WitnessCalculator {
   async calculateWTNSBin(input: any, sanityCheck: any) {
     const buff32 = new Uint32Array(this.witnessSize * this.n32 + this.n32 + 11);
     const buff = new Uint8Array(buff32.buffer);
+  
     await this._doCalculateWitness(input, sanityCheck);
 
     //"wtns"
