@@ -1,20 +1,19 @@
 // @ts-ignore
 import bfj from "bfj";
 // @ts-ignore
-import { utils, Scalar } from "ffjavascript";
+import { utils } from "ffjavascript";
 import fs from "fs";
 import path from "path";
 import shelljs from "shelljs";
 import fsExtra from "fs-extra";
 import { fileExists } from "./utils";
 import { log } from "./logger";
-import { wtnsBuilder, readWtnsHeader } from "./witness";
+import { wtnsBuilder } from "./witness";
 // @ts-ignore
 import * as fastFile from "fastfile";
-const { zKey, plonk, wtns } = require("snarkjs");
-const { stringifyBigInts, unstringifyBigInts } = utils;
+const { zKey, plonk } = require("snarkjs");
+const { stringifyBigInts } = utils;
 // @ts-ignore
-import { readBinFile, readSection } from "@iden3/binfileutils";
 
 const DEFAULT_NODE_ARGS = "--max-old-space-size=8192 --stack-size=65500";
 const NODE_ARGS = process.env.NODE_ARGS || DEFAULT_NODE_ARGS;
@@ -179,12 +178,12 @@ export const WrappedSnarkJs = {
           "cli.cjs"
         );
 
-        const cmd_three = `${NODE_CMD} ${snarkjsPath} wej ${wtnsPath} ${wtnsPath.replace(
+        const command = `${NODE_CMD} ${snarkjsPath} wej ${wtnsPath} ${wtnsPath.replace(
           ".wtns",
           ".json"
         )}`;
 
-        shelljs.exec(cmd_three);
+        shelljs.exec(command);
 
         if (witnessBinFile) {
           log(`✓ Successfully generated the witness file`, "success");

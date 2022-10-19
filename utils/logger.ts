@@ -2,8 +2,6 @@ const chalk = require("chalk");
 import {
   readBinFile,
   readSection,
-  startReadUniqueSection,
-  readBigInt,
   // @ts-ignore
 } from "@iden3/binfileutils";
 import { readWtnsHeader } from "./witness";

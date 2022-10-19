@@ -8,8 +8,6 @@ import { fileExists } from "../../../utils/utils";
 import { WrappedSnarkJs } from "../../../utils/snarkjs";
 import { Checker } from "../../../utils/checker";
 // @ts-ignore
-import { readBinFile, readSection } from "@iden3/binfileutils";
-// @ts-ignore
 import { load } from "r1csfile";
 // @ts-ignore
 import { utils } from "ffjavascript";
