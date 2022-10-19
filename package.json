@@ -38,8 +38,6 @@
     "bfj": "^7.0.2",
     "chai": "^4.3.6",
     "chalk": "^4.1.2",
-    "circom": "^0.5.46",
-    "circom_runtime": "^0.1.21",
     "circom2": "^0.2.8",
     "commander": "^9.4.0",
     "concat-stream": "^2.0.0",

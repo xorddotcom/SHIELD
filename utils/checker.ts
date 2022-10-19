@@ -4,7 +4,6 @@ import { load } from "r1csfile";
 import { ZqField } from "ffjavascript";
 import { log } from "./logger";
 import assert from "assert";
-import { Console } from "console";
 
 const nodefs = require("fs");
 const fs = require("fs/promises");
