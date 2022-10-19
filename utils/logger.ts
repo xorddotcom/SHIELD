@@ -1,6 +1,9 @@
 const chalk = require("chalk");
-// @ts-ignore
-import { readBinFile, readSection } from "@iden3/binfileutils";
+import {
+  readBinFile,
+  readSection,
+  // @ts-ignore
+} from "@iden3/binfileutils";
 import { readWtnsHeader } from "./witness";
 // @ts-ignore
 import { Scalar } from "ffjavascript";
@@ -48,7 +51,12 @@ export const circomLog = (message = "") => {
   );
 };
 
-export const logSignals = async (r1cs: any, wtnsFile: any, symFile: any) => {
+export const logSignals = async (
+  r1cs: any,
+  wtnsFile: any,
+  symFile: any,
+  inputSignals: any
+) => {
   if (r1cs) {
     const { fd: fdWtns, sections: sectionsWtns } = await readBinFile(
       wtnsFile,
@@ -58,7 +66,7 @@ export const logSignals = async (r1cs: any, wtnsFile: any, symFile: any) => {
       1 << 23
     );
 
-    const wtns = await readWtnsHeader(fdWtns, sectionsWtns);
+    const { n8 } = await readWtnsHeader(fdWtns, sectionsWtns);
     const buffWitness = await readSection(fdWtns, sectionsWtns, 2);
 
     let outputPrefixes: any = {};
@@ -73,23 +81,17 @@ export const logSignals = async (r1cs: any, wtnsFile: any, symFile: any) => {
           outputPrefixes[wireNo] =
             line.split(",")[3].replace("main.", "") + " = ";
         } else {
-          inputPrefixes[wireNo] =
-            line.split(",")[3].replace("main.", "") + " = ";
+          inputPrefixes[line.split(",")[3].replace("main.", "")] = 0;
         }
         lastPos = i;
       }
     }
-
-    let outputSignals: any = {};
-
     if (r1cs.nOutputs > 0) {
-      for (const wire in outputPrefixes) {
-
-        // @ts-ignore
-        const b = buffWitness.slice(wire * wtns.n8, wire * wtns.n8 + wtns.n8);
-
-        const outputPrefix = outputPrefixes[wire] || "";
-
+      let outputSignals: any = {};
+      let outputIndex = 1;
+      for (; outputIndex <= r1cs.nOutputs; outputIndex++) {
+        const b = buffWitness.slice(outputIndex * n8, outputIndex * n8 + n8);
+        const outputPrefix = outputPrefixes[outputIndex] || "";
         try {
           outputSignals[outputPrefix.replace("=", "").trim()] =
             Scalar.fromRprLE(b).toString();
@@ -97,46 +99,42 @@ export const logSignals = async (r1cs: any, wtnsFile: any, symFile: any) => {
           outputSignals[outputPrefix.replace("=", "").trim()] = "0";
         }
       }
+
+      if (Object.keys(outputSignals).length !== 0) {
+        console.log(chalk.cyan(`\nOutput Signals:\n`));
+
+        console.table(outputSignals);
+      } else {
+        console.log(chalk.yellow(`No output signal found:\n`));
+      }
     }
 
-    let inputSignals: any = {};
+    const sortedKeys = Object.keys(inputPrefixes).sort();
+    const sortedSignals = Object.keys(inputSignals).sort();
 
-    console.log({ inputPrefixes });
-
-    for (const wire in inputPrefixes) {
-      // @ts-ignore
-      const b = buffWitness.slice(wire * wtns.n8, wire * wtns.n8 + wtns.n8);
-
-      console.log({ b });
-
-      const inputPrefix = inputPrefixes[wire] || "";
-
-      console.log({ inputPrefix }, b);
-
-      try {
-        inputSignals[inputPrefix.replace("=", "").trim()] =
-          Scalar.fromRprLE(b).toString();
-      } catch (err) {
-        inputSignals[inputPrefix.replace("=", "").trim()] = "0";
+    let iterator = 0;
+    for (const key of sortedSignals) {
+      if (Object.prototype.hasOwnProperty.call(inputSignals, key)) {
+        const element = inputSignals[key];
+        if (typeof element === "object") {
+          const flatArray = element.flat();
+          for (const signal of flatArray) {
+            inputPrefixes[sortedKeys[iterator]] = signal;
+            iterator++;
+          }
+        } else {
+          inputPrefixes[sortedKeys[iterator]] = element;
+          iterator++;
+        }
       }
     }
 
     if (Object.keys(inputSignals).length !== 0) {
-      console.log(chalk.cyan(`Input Signals:\n`));
-
-      console.table(inputSignals);
+      console.log(chalk.cyan(`\nInput Signals:\n`));
+      console.table(inputPrefixes);
     } else {
-      console.log(chalk.yellow(`No input signal found\n`));
+      console.log(chalk.yellow(`No input signal found:\n`));
     }
-
-    if (Object.keys(outputSignals).length !== 0) {
-      console.log(chalk.cyan(`\nOutput Signals:\n`));
-
-      console.table(outputSignals);
-    } else {
-      console.log(chalk.yellow(`No ouput signal found:\n`));
-    }
-
     await fdWtns.close();
   }
 };

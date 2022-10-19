@@ -1,7 +1,7 @@
 // @ts-ignore
 import bfj from "bfj";
 // @ts-ignore
-import { utils, Scalar } from "ffjavascript";
+import { utils } from "ffjavascript";
 import fs from "fs";
 import path from "path";
 import shelljs from "shelljs";
@@ -11,15 +11,13 @@ import { log } from "./logger";
 import { wtnsBuilder } from "./witness";
 // @ts-ignore
 import * as fastFile from "fastfile";
-const { zKey, plonk, wtns } = require("snarkjs");
-const { stringifyBigInts, unstringifyBigInts } = utils;
-import {
-  createBinFile,
-  endWriteSection,
-  startWriteSection,
-  writeBigInt,
-  // @ts-ignore
-} from "@iden3/binfileutils";
+const { zKey, plonk } = require("snarkjs");
+const { stringifyBigInts } = utils;
+// @ts-ignore
+
+const DEFAULT_NODE_ARGS = "--max-old-space-size=8192 --stack-size=65500";
+const NODE_ARGS = process.env.NODE_ARGS || DEFAULT_NODE_ARGS;
+const NODE_CMD = `node ${NODE_ARGS}`;
 
 export const WrappedSnarkJs = {
   groth16: {
@@ -151,43 +149,47 @@ export const WrappedSnarkJs = {
     },
     generateWtns: async (wtnsPath: string, wasmPath: string, input: any) => {
       try {
-        const _input = unstringifyBigInts(input);
-
         const fdWasm = await fastFile.readExisting(wasmPath);
         const wasm = await fdWasm.read(fdWasm.totalSize);
         await fdWasm.close();
 
-        const wc = await wtnsBuilder(wasm, {
-          log() {},
+        const logs = [];
+
+        const witness = await wtnsBuilder(wasm, {
+          log(message: bigint, label?: string) {
+            if (label) {
+              logs.push(label + ": " + message.toString());
+            } else {
+              logs.push(message.toString());
+            }
+          },
         });
-        let w;
-        if (wc.circom_version() == 1) {
-          w = await wc.calculateBinWitness(_input, true);
 
-          const fdWtns = await createBinFile(wtnsPath, "wtns", 2, 2);
+        const witnessBinFile = await witness.calculateWTNSBin(input, true);
 
-          await writeBin(fdWtns, w, wc.prime);
+        const fsWtns = await fastFile.createOverride(wtnsPath);
 
-          await fdWtns.close();
-        } else {
-          const fdWtns = await fastFile.createOverride(wtnsPath);
+        await fsWtns.write(witnessBinFile);
+        await fsWtns.close();
 
-          w = await wc.calculateWTNSBin(_input, true);
-
-          await fdWtns.write(w);
-          await fdWtns.close();
-        }
-
-        const wtnsData = await wtns.exportJson(wtnsPath);
-        await bfj.write(
-          wtnsPath.replace(".wtns", ".json"),
-          stringifyBigInts(wtnsData),
-          { space: 1 }
+        const snarkjsPath = path.join(
+          require.resolve("snarkjs"),
+          "..",
+          "cli.cjs"
         );
-        if (wtnsData) {
+
+        const command = `${NODE_CMD} ${snarkjsPath} wej ${wtnsPath} ${wtnsPath.replace(
+          ".wtns",
+          ".json"
+        )}`;
+
+        shelljs.exec(command);
+
+        if (witnessBinFile) {
           log(`✓ Successfully generated the witness file`, "success");
         }
-        return w;
+
+        return witnessBinFile;
       } catch (error) {
         log(`${error}`, "error");
         throw error;
@@ -196,18 +198,16 @@ export const WrappedSnarkJs = {
   },
 };
 
-async function writeBin(fd: any, witnessBin: any, prime: any) {
-  await startWriteSection(fd, 1);
-  const n8 = (Math.floor((Scalar.bitLength(prime) - 1) / 64) + 1) * 8;
-  await fd.writeULE32(n8);
-  await writeBigInt(fd, prime, n8);
-  if (witnessBin.byteLength % n8 != 0) {
-    throw new Error("Invalid witness length");
-  }
-  await fd.writeULE32(witnessBin.byteLength / n8);
-  await endWriteSection(fd);
-
-  await startWriteSection(fd, 2);
-  await fd.write(witnessBin);
-  await endWriteSection(fd);
+function defaultWitnessOption() {
+  let logFn = console.log;
+  let calculateWitnessOptions = {
+    sanityCheck: true,
+    logTrigger: logFn,
+    logOutput: logFn,
+    logStartComponent: logFn,
+    logFinishComponent: logFn,
+    logSetSignal: logFn,
+    logGetSignal: logFn,
+  };
+  return calculateWitnessOptions;
 }

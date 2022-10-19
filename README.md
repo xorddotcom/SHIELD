@@ -196,7 +196,7 @@ Input Signals:
 │    b      │  '2'   │
 └───────────┴────────┘
 
-No ouput signal found:
+No output signal found:
 
 Constraint no 1: passed
 
