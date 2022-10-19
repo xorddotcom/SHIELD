@@ -8,9 +8,13 @@ import { fileExists } from "../../../utils/utils";
 import { WrappedSnarkJs } from "../../../utils/snarkjs";
 import { Checker } from "../../../utils/checker";
 // @ts-ignore
+import { readBinFile, readSection } from "@iden3/binfileutils";
+// @ts-ignore
 import { load } from "r1csfile";
 // @ts-ignore
 import { utils } from "ffjavascript";
+
+const fs = require("fs/promises");
 
 enum Protocol {
   GROTH16 = "groth16",
@@ -169,12 +173,10 @@ export const debug = async (options: any) => {
 
       if (await fileExists(inputFilePath)) {
         try {
-          const inputFileData = await wasmFs.readFileSync(
-            inputFilePath,
-            "utf8"
+          
+          const input = utils.unstringifyBigInts(
+            JSON.parse(await fs.readFile(inputFilePath, "utf8"))
           );
-
-          const input = utils.unstringifyBigInts(JSON.parse(inputFileData));
 
           const wtnsFile = await WrappedSnarkJs.util.generateWtns(
             wtnsFilePath,
@@ -186,7 +188,7 @@ export const debug = async (options: any) => {
 
           const symFile = await wasmFs.readFileSync(symFilePath);
 
-          await logSignals(r1cs, wtnsFile, symFile);
+          await logSignals(r1cs, wtnsFile, symFile, input);
 
           const checker = new Checker(r1csFilePath, symFilePath);
 
@@ -194,7 +196,7 @@ export const debug = async (options: any) => {
             wtnsFilePath.replace(".wtns", ".json")
           );
           spinner.succeed(
-            chalk.greenBright(`${circuitName} succesfully debugged.`)
+            chalk.greenBright(`${circuitName} successfully debugged.`)
           );
         } catch (error) {
           if (error instanceof Error) {
