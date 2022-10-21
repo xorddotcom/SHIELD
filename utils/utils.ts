@@ -157,7 +157,6 @@ export const createInterface = async (
   }
 };
 
-
 export const bumpSolidityVersion = async (
   SOLIDITY_VERSION: string,
   CIRCUIT_NAME: string,
@@ -202,4 +201,19 @@ export const bumpSolidityVersion = async (
     log(`${error}`, "error");
     throw error;
   }
+};
+
+
+export const arrayLogger = (key: string, array: any[]): any => {
+  let prefixes: any = {};
+  for (let index = 0; index < array.length; index++) {
+    const element = array[index];
+    if (typeof element === "object") {
+      const subPrefixes = arrayLogger(`${key}[${index}]`, element);
+      prefixes = { ...prefixes, ...subPrefixes };
+    } else {
+      prefixes[`${key}[${index}]`] = element;
+    }
+  }
+  return prefixes;
 };

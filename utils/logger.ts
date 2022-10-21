@@ -7,6 +7,7 @@ import {
 import { readWtnsHeader } from "./witness";
 // @ts-ignore
 import { Scalar } from "ffjavascript";
+import { arrayLogger } from "./utils";
 
 const TYPES = {
   info: "info",
@@ -55,7 +56,7 @@ export const logSignals = async (
   r1cs: any,
   wtnsFile: any,
   symFile: any,
-  inputSignals: any
+  jsonInputs: any
 ) => {
   if (r1cs) {
     const { fd: fdWtns, sections: sectionsWtns } = await readBinFile(
@@ -70,7 +71,6 @@ export const logSignals = async (
     const buffWitness = await readSection(fdWtns, sectionsWtns, 2);
 
     let outputPrefixes: any = {};
-    let inputPrefixes: any = {};
     let lastPos = 0;
     let dec = new TextDecoder("utf-8");
     for (let i = 0; i < symFile.length; i++) {
@@ -80,8 +80,6 @@ export const logSignals = async (
         if (wireNo <= r1cs.nOutputs) {
           outputPrefixes[wireNo] =
             line.split(",")[3].replace("main.", "") + " = ";
-        } else {
-          inputPrefixes[line.split(",")[3].replace("main.", "")] = 0;
         }
         lastPos = i;
       }
@@ -109,29 +107,25 @@ export const logSignals = async (
       }
     }
 
-    const sortedKeys = Object.keys(inputPrefixes).sort();
-    const sortedSignals = Object.keys(inputSignals).sort();
+    const sortedSignals = Object.keys(jsonInputs).sort();
 
-    let iterator = 0;
+    let inputSignals: any = {};
+
     for (const key of sortedSignals) {
-      if (Object.prototype.hasOwnProperty.call(inputSignals, key)) {
-        const element = inputSignals[key];
+      if (Object.prototype.hasOwnProperty.call(jsonInputs, key)) {
+        const element = jsonInputs[key];
         if (typeof element === "object") {
-          const flatArray = element.flat();
-          for (const signal of flatArray) {
-            inputPrefixes[sortedKeys[iterator]] = signal;
-            iterator++;
-          }
+          inputSignals = { ...inputSignals, ...arrayLogger("matrix", element) };
         } else {
-          inputPrefixes[sortedKeys[iterator]] = element;
-          iterator++;
+          inputSignals[key] = jsonInputs[key];
         }
+      } else {
       }
     }
 
-    if (Object.keys(inputSignals).length !== 0) {
+    if (Object.keys(jsonInputs).length !== 0) {
       console.log(chalk.cyan(`\nInput Signals:\n`));
-      console.table(inputPrefixes);
+      console.table(inputSignals);
     } else {
       console.log(chalk.yellow(`No input signal found:\n`));
     }
