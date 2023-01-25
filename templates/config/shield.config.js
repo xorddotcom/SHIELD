@@ -23,6 +23,8 @@ module.exports = {
         input: "input.json",
         // // (optional) Output path for witness file, inferred from `name` if unspecified
         witness: "demo.json",
+        // (optional) Whether solidity files should be generated for this circuit, true if unspecified
+        generateSolidity: true
       },
     ],
   },
