@@ -33,6 +33,7 @@ interface ICircuits {
   protocol?: Protocol;
   circuit?: string;
   zkey?: string;
+  generateSolidity?: boolean;
 }
 interface IUserConfig {
   solidity?: string;
@@ -102,6 +103,9 @@ export const compile = async (options: any) => {
           }
           if (!circuits[i].circuit) {
             circuits[i].circuit = `${circuits[i].name}.circom`;
+          }
+          if (circuits[i].generateSolidity === undefined) {
+            circuits[i].generateSolidity = true;
           }
         }
       }
@@ -282,18 +286,20 @@ export const compile = async (options: any) => {
         // step 5:
         await WrappedSnarkJs.util.generateVkey(zKeyPath.final, vKeyPath);
 
-        // step 6:
-        await WrappedSnarkJs.util.generateSolidityVerifier(
-          zKeyPath.final,
-          solVerifierPath
-        );
+        if (finalConfig.circom.circuits[i].generateSolidity) {
+          // step 6:
+          await WrappedSnarkJs.util.generateSolidityVerifier(
+            zKeyPath.final,
+            solVerifierPath
+          );
 
-        // step 7:
-        await bumpSolidityVersion(
-          finalConfig.solidity ? finalConfig.solidity : "^0.8.0",
-          circuitName,
-          finalConfig.circom.circuits[i].protocol as string
-        );
+          // step 7:
+          await bumpSolidityVersion(
+            finalConfig.solidity ? finalConfig.solidity : "^0.8.0",
+            circuitName,
+            finalConfig.circom.circuits[i].protocol as string
+          );
+        }
         spinner.succeed(chalk.greenBright(`${circuitName} compiled.`));
       } else {
         log(
